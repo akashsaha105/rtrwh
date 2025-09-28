@@ -1,11 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
 
-const Products: React.FC = () => {
+const InstallPage: React.FC = () => {
   return (
-    <div className="relative space-y-10 p-4">
+    <div className="relative space-y-6 p-8">
       {/* Title */}
-      <h3 className="text-2xl font-bold text-sky-300" id="installation-overview" data-tab="products">Installation Overview</h3>
+      <h3 className="text-3xl font-bold text-sky-300" id="installation-overview" data-tab="products">Installation Overview</h3>
 
       {/* ================= Cost & Benefits ================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -32,7 +32,7 @@ const Products: React.FC = () => {
 
       {/* ================= Recommendation System ================= */}
       <div>
-        <h3 className="text-2xl font-bold text-pink-300 mb-6" id="recommend" data-tab="products">
+        <h3 className="text-2xl font-bold text-pink-300 mb-6 mt-12" id="recommend" data-tab="products">
           🛒 Recommended Products
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,16 +94,6 @@ const Products: React.FC = () => {
         </div>
       </div>
 
-      {/* ROI */}
-      <div className="bg-gradient-to-r from-sky-900/30 to-indigo-900/30 p-6 rounded-2xl border border-sky-400/30 backdrop-blur-md shadow-xl hover:scale-[1.01] transition">
-        <h4 className="text-xl font-semibold text-sky-300">
-          ⏳ ROI (Payback Time)
-        </h4>
-        <p className="text-lg mt-2 text-gray-200">
-          Your system will pay for itself in around{" "}
-          <span className="text-sky-400 font-bold">2 years</span>.
-        </p>
-      </div>
 
       {/* Chart Placeholder */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-lg">
@@ -138,32 +128,8 @@ const Products: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {/* Benefits */}
-      <div>
-        <h4 className="text-xl font-semibold text-purple-300 mb-4">
-          🌱 Key Benefits
-        </h4>
-        <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            "Save up to 40% on water bills",
-            "Recharge groundwater",
-            "Eco-friendly solution",
-            "Eligible for subsidies",
-            "IoT monitoring options",
-            "Drought resilience",
-          ].map((benefit, i) => (
-            <li
-              key={i}
-              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-4 rounded-xl transition"
-            >
-              ✅ <span className="text-gray-200">{benefit}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
 };
 
-export default Products;
+export default InstallPage;

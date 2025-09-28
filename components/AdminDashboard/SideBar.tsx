@@ -21,7 +21,6 @@ const SideBar: React.FC<DashboardSideBarProps> = ({
 
   const [mounted, setMounted] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [city, setCity] = useState("")
 
   useEffect(() => {
     setMounted(true);
@@ -98,11 +97,6 @@ const SideBar: React.FC<DashboardSideBarProps> = ({
             )}
           </div>
         ))}
-
-        {/* Rainfall Forecast Card */}
-        {/* 3-Day Weather Forecast Card */}
-        {/* {!collapsed && <WeatherForecast collapsed={collapsed}/>} */}
-        {/* <WeatherForecast collapsed={collapsed} city={city}/> */}
       </nav>
 
       {/* User Info */}

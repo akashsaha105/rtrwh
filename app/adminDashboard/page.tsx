@@ -8,6 +8,9 @@ import { auth } from "@/firebase";
 import LoadingPage from "@/components/Loading";
 import SideBar from "@/components/AdminDashboard/SideBar";
 import Navbar from "@/components/AdminDashboard/NavBar";
+import Users from "@/components/AdminDashboard/Users";
+import Product from "@/components/AdminDashboard/Product";
+import OrdersPage from "@/components/AdminDashboard/Orders";
 
 const Page = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -57,24 +60,17 @@ const Page = () => {
           {/* Insights */}
           <div className={activeItem === "orders" ? "block" : "hidden"}>
             <h3 className="text-lg font-semibold mb-4">Orders</h3>
-            <div className="h-64 flex items-center justify-center text-sky-400">
-              📊 Chart Placeholder
-            </div>
+            <OrdersPage />
           </div>
 
           {/* Users */}
           <div className={activeItem === "users" ? "block" : "hidden"}>
-            <h3 className="text-lg font-semibold mb-4">Users List</h3>
-            <ul className="space-y-2">
-              <li className="bg-white/10 p-3 rounded-md">👤 User 1</li>
-              <li className="bg-white/10 p-3 rounded-md">👤 User 2</li>
-              <li className="bg-white/10 p-3 rounded-md">👤 User 3</li>
-            </ul>
+            <Users />
           </div>
 
           {/* Products */}
           <div className={activeItem === "products" ? "block" : "hidden"}>
-            <h1>Products</h1>
+            <Product />
           </div>
 
           {/* Analytics */}

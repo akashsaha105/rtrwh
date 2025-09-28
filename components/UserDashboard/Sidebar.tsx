@@ -48,8 +48,8 @@ const SideBar: React.FC<DashboardSideBarProps> = ({
       href: "/dashboard/reports",
     },
     {
-      id: "products",
-      name: "Products",
+      id: "install",
+      name: "Install",
       icon: <WorkflowIcon width={width} height={height} />,
       href: "/dashboard/settings",
     },

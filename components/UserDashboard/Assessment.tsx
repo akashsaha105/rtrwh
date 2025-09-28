@@ -4,18 +4,13 @@ import { auth, firestore } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+
+interface City {
+  location: {
+    city: string;
+  };
+}
 
 interface RoofTopData {
   rooftop: {
@@ -26,45 +21,63 @@ interface RoofTopData {
   };
 }
 
+async function getCoordinates(cityName: string) {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${cityName}`
+    );
+    const data = await response.json();
+    if (data.length > 0) {
+      const latitude = parseFloat(data[0].lat);
+      const longitude = parseFloat(data[0].lon);
+      return { latitude, longitude };
+    } else {
+      return null;
+    }
+  } catch (err) {
+    console.error("Error fetching coordinates:", err);
+    return null;
+  }
+}
+
 function sqftToSqm(sqft: number): number {
   const sqm = sqft * 0.092903; // 1 ft² = 0.092903 m²
   return parseFloat(sqm.toFixed(4)); // rounding to 4 decimal places
 }
 
 const Assessment: React.FC = () => {
+  // User city
+  const [city, setCity] = useState("");
+
   // Dashboard Overview State
   const [area, setArea] = useState("");
   const [type, setType] = useState("");
   const [space, setSpace] = useState("");
-  const [dwellers, setDewellers] = useState("");
+  const [dwellers, setDwellers] = useState("");
 
-  // Rooftop Harvest Analysis
-  const collectedRainfall = sqftToSqm(+area) * 2.5 * 0.82 * 1000;
-  const harvestPotential = sqftToSqm(+area) * 2.5 * 1000;
-  const perPersonAvail = harvestPotential / +dwellers;
+  // Rainfall
+  const [rainfall, setRainfall] = useState(0); // in mm
 
-  // Rooftop Efficiency
-  const efficiency = (collectedRainfall / harvestPotential) * 100;
-
-  // Storage Tank Calculations
-  const [storageDays, setStorageDays] = useState("");
-  const tankVolume = +dwellers * 135 * +storageDays;
-  const tankUtilization =
-    (Math.min(collectedRainfall, tankVolume) / tankVolume) * 100;
-
+  // Load user data
   useEffect(() => {
     onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         const docRef = doc(firestore, "users", currentUser.uid);
+
+        const citysnap = await getDoc(docRef);
         const roofTopSnap = await getDoc(docRef);
 
-        if (roofTopSnap.exists()) {
+        if (roofTopSnap.exists() || citysnap.exists()) {
           try {
+            const getCity = citysnap.data() as City;
             const getRoofTopData = roofTopSnap.data() as RoofTopData;
+
+            setCity(getCity.location.city);
+
             setArea(getRoofTopData.rooftop.area);
             setType(getRoofTopData.rooftop.type);
             setSpace(getRoofTopData.rooftop.space);
-            setDewellers(getRoofTopData.rooftop.dwellers);
+            setDwellers(getRoofTopData.rooftop.dwellers);
           } catch (e) {
             console.log(e);
           }
@@ -75,21 +88,73 @@ const Assessment: React.FC = () => {
     });
   }, []);
 
-  // Dummy Data
-  const yearlyHarvestData = [
-    { month: "Jan", liters: 120 },
-    { month: "Feb", liters: 300 },
-    { month: "Mar", liters: 250 },
-    { month: "Apr", liters: 500 },
-    { month: "May", liters: 700 },
-    { month: "Jun", liters: 1000 },
-    { month: "Jul", liters: 900 },
-    { month: "Aug", liters: 800 },
-    { month: "Sep", liters: 600 },
-    { month: "Oct", liters: 400 },
-    { month: "Nov", liters: 300 },
-    { month: "Dec", liters: 200 },
-  ];
+  // Fetch annual rainfall from Open-Meteo
+  useEffect(() => {
+    if (!city) return;
+
+    const fetchAnnualRainfall = async () => {
+      const coords = await getCoordinates(city);
+      if (!coords) {
+        console.log("Could not get coordinates for city:", city);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `https://archive-api.open-meteo.com/v1/archive?latitude=${coords.latitude}&longitude=${coords.longitude}&start_date=2025-09-12&end_date=2025-09-26&daily=rain_sum&timezone=auto`
+        );
+        const data = await res.json();
+        // const annual = data?.rain_sum?.reduce(
+        //   (a: number, b: number) => a + b,
+        //   0
+        // ) || 0;
+        let annual = 0;
+
+        for (let i = 0; i < data.daily.rain_sum.length; i++) {
+          annual += data.daily.rain_sum[i];
+        }
+        setRainfall(annual);
+        console.log("Annual Rainfall (mm):", annual);
+      } catch (err) {
+        console.log("Error fetching annual rainfall:", err);
+      }
+    };
+
+    fetchAnnualRainfall();
+  }, [city]);
+
+  // Rooftop Harvest Analysis
+  const harvestPotential = sqftToSqm(+area) * (rainfall / 1000) * 1000; // Total Harvest Potential
+  const perPersonAvail = harvestPotential / +dwellers; // Per person Availability
+
+  // Rooftop Efficiency
+  let runoffCoefficient = 0.9;
+  
+  switch (type){
+    case "Flat":
+      runoffCoefficient = 0.75
+    
+    case "Sloped":
+      runoffCoefficient = 0.85
+
+    case "Asbestos":
+      runoffCoefficient = 0.7
+    
+    case "Metal Sheet Roof":
+      runoffCoefficient = 0.90
+    
+    case "Bamboo Roof":
+      runoffCoefficient = 0.65
+  }
+  
+  const collectedRainfall =
+    sqftToSqm(+area) * (rainfall / 1000) * runoffCoefficient * 1000;
+  const efficiency = (collectedRainfall / harvestPotential) * 100;
+
+  // Storage Tank Calculations
+  const [storageDays, setStorageDays] = useState("");
+  const tankVolume = +dwellers * 135 * +storageDays;
+  const tankUtilization =
+    (Math.min(collectedRainfall, tankVolume) / tankVolume) * 100;
 
   const usageBreakdown = [
     { name: "Drinking", value: 15 },
@@ -102,12 +167,16 @@ const Assessment: React.FC = () => {
   const COLORS = ["#4ade80", "#60a5fa", "#facc15", "#f472b6", "#c084fc"];
 
   return (
-    <div className="p-4 relative z-[-1]">
+    <div className="p-8 relative">
       {/* Dashboard Overview */}
-      <div className="relative z-0">
-        <h3 className="text-2xl font-bold text-sky-300 mb-4" id="overview" data-tab="assessment">
+      <div className="relative">
+        <h2
+          className="text-3xl font-bold mb-6 flex items-center gap-2 text-sky-300"
+          id="overview"
+          data-tab="assessment"
+        >
           Dashboard Overview
-        </h3>
+        </h2>
         <div className="relative **:z-[-1] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { title: "Rooftop Area", value: area + " sq. ft." },
@@ -119,7 +188,13 @@ const Assessment: React.FC = () => {
               key={i}
               className="relative **:z-0 p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 shadow-md"
             >
-              <h3 className="text-lg font-semibold"  id={"rooftop-" + i} data-tab="assessment">{item.title}</h3>
+              <h3
+                className="text-lg font-semibold"
+                id={"rooftop-" + i}
+                data-tab="assessment"
+              >
+                {item.title}
+              </h3>
               <p className="text-2xl font-bold mt-2 text-sky-300">
                 {item.value}
               </p>
@@ -135,7 +210,9 @@ const Assessment: React.FC = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-6 rounded-2xl bg-green-900/20 backdrop-blur-md border border-green-500/30 shadow-md">
-            <h3 className="text-lg font-semibold" id="harvest_2">Total Harvest Potential</h3>
+            <h3 className="text-lg font-semibold" id="harvest_2">
+              Total Harvest Potential
+            </h3>
             <p className="text-2xl font-bold mt-2 text-green-400">
               {/* 15,000 Liters / Year */}
               {Math.round(harvestPotential).toLocaleString()} Liters / Year
@@ -196,10 +273,101 @@ const Assessment: React.FC = () => {
         </div>
       </div>
 
-      {/* Storage Tank Analysis */}
-      <div className="mt-10">
-        <h3 className="text-lg font-semibold mb-4">Storage Tank Analysis</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Recommendation for Groundwater Recharge Structures */}
+      <div className="mt-12 mb-12">
+        <h4 className="text-2xl font-semibold text-green-400 mb-6 flex items-center gap-2">
+          💧 Recharge Structure Recommendations
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              type: "Recharge Pit",
+              dimension: "2m x 2m x 2.5m",
+              capacity: "10,000 L",
+              suitability: "Best for clayey soil",
+            },
+            {
+              type: "Recharge Trench",
+              dimension: "1m x 8m x 2m",
+              capacity: "16,000 L",
+              suitability: "Good for sandy soil",
+            },
+            {
+              type: "Recharge Shaft",
+              dimension: "Ø 1.5m x 12m",
+              capacity: "25,000 L",
+              suitability: "Ideal for deep aquifers",
+            },
+          ].map((structure, idx) => (
+            <div
+              key={idx}
+              className="relative bg-gradient-to-br from-green-900/40 to-green-700/20 p-6 rounded-2xl border border-green-400/30 transition transform shadow-lg"
+            >
+              <h5 className="text-xl font-bold text-green-300 mb-3">
+                {structure.type}
+              </h5>
+              <ul className="space-y-2 text-sm text-white/80">
+                <li>
+                  <strong>Dimension:</strong> {structure.dimension}
+                </li>
+                <li>
+                  <strong>Capacity:</strong> {structure.capacity}
+                </li>
+                <li>
+                  <strong>Best for:</strong> {structure.suitability}
+                </li>
+              </ul>
+              <button className="mt-4 px-4 py-2 bg-green-600/60 hover:bg-green-500 text-white rounded-lg text-sm cursor-pointer">
+                Learn More
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recommendation for Storage Tank */}
+      <div className="mb-12">
+        <h4 className="text-2xl font-semibold text-blue-400 mb-6 flex items-center gap-2">
+          🛢️ Storage Tank Recommendations
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {[
+            {
+              type: "Underground Tank",
+              dimension: "5m x 4m x 3m",
+              capacity: "60,000 L",
+              utilization: 72,
+            },
+            {
+              type: "Overhead Tank",
+              dimension: "3m x 3m x 4m",
+              capacity: "36,000 L",
+              utilization: 85,
+            },
+          ].map((tank, idx) => (
+            <div
+              key={idx}
+              className="relative bg-blue-900/20 backdrop-blur-md border-blue-500/30 p-6 rounded-2xl border transition transform shadow-lg"
+            >
+              <h5 className="text-xl font-bold text-blue-400 mb-3">
+                {tank.type}
+              </h5>
+              <ul className="space-y-2 text-sm text-white/80">
+                <li>
+                  <strong>Dimension:</strong> {tank.dimension}
+                </li>
+                <li>
+                  <strong>Capacity:</strong> {tank.capacity}
+                </li>
+              </ul>
+
+              <button className="mt-4 px-4 py-2 bg-sky-600/60 hover:bg-blue-500 text-white rounded-lg text-sm cursor-pointer">
+                Learn More
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-6 rounded-2xl bg-blue-900/20 backdrop-blur-md border border-blue-500/30 shadow-md space-y-5">
             <h3 className="text-lg font-semibold">Required Tank Volume</h3>
             <div className="flex flex-col gap-3">
@@ -233,9 +401,9 @@ const Assessment: React.FC = () => {
               </li>
             </ul>
             <p className="text-2xl font-bold mt-2 text-blue-400">
-              {+storageDays != 0 ? (
-                Math.round(tankUtilization).toLocaleString() + "%"
-              ) : "Tank utilization will appear here"}
+              {+storageDays != 0
+                ? Math.round(tankUtilization).toLocaleString() + "%"
+                : "Tank utilization will appear here"}
             </p>
             <div className="w-full h-4 rounded-full bg-sky-800/40">
               <div
@@ -250,28 +418,15 @@ const Assessment: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Rainwater Collection Trend */}
-      <div className="mt-10">
-        <h3 className="text-lg font-semibold mb-4">
-          Rainwater Collection Trend
-        </h3>
-        <div className="h-72 bg-white/10 backdrop-blur-lg rounded-2xl p-4 shadow-md">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={yearlyHarvestData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="liters"
-                stroke="#38bdf8"
-                strokeWidth={3}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+      {/* ROI */}
+      <div className="bg-gradient-to-r from-sky-900/30 to-indigo-900/30 p-6 rounded-2xl border border-sky-400/30 backdrop-blur-md shadow-xl hover:scale-[1.01] transition">
+        <h4 className="text-xl font-semibold text-sky-300">
+          ⏳ ROI (Payback Time)
+        </h4>
+        <p className="text-lg mt-2 text-gray-200">
+          Your system will pay for itself in around{" "}
+          <span className="text-sky-400 font-bold">2 years</span>.
+        </p>
       </div>
 
       {/* Usage Breakdown Pie Chart */}
@@ -315,10 +470,39 @@ const Assessment: React.FC = () => {
           </ul>
         </div>
       </div>
+      {/* Benefits */}
+      <div>
+        <h4 className="text-xl font-semibold text-purple-300 mt-10 my-4">
+          🌱 Key Benefits
+        </h4>
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            "Save up to 40% on water bills",
+            "Recharge groundwater",
+            "Eco-friendly solution",
+            "Eligible for subsidies",
+            "IoT monitoring options",
+            "Drought resilience",
+          ].map((benefit, i) => (
+            <li
+              key={i}
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-4 rounded-xl transition"
+            >
+              ✅ <span className="text-gray-200">{benefit}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       {/* What-If Analysis */}
       <div className="mt-10">
-        <h3 className="text-lg font-semibold mb-4" id="what-if" data-tab="assessment">What-If Analysis</h3>
+        <h3
+          className="text-lg font-semibold mb-4"
+          id="what-if"
+          data-tab="assessment"
+        >
+          What-If Analysis
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-6 rounded-2xl bg-purple-900/20 backdrop-blur-md border border-purple-500/30 shadow-md">
             <h3 className="text-lg font-semibold">Double Rooftop Area</h3>

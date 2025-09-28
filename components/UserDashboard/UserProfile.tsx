@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import profile from "../../public/assets/profile.jpg"
+import profile from "../../public/assets/profile.jpg";
 import { MapPinIcon } from "@heroicons/react/16/solid";
 import { onAuthStateChanged, updateProfile } from "firebase/auth";
 import { auth, firestore } from "@/firebase";
@@ -22,8 +22,9 @@ interface FormData {
   email: string;
   phoneNumber: string;
   location: {
-    address: string;
+    state: string;
     city: string;
+    address: string;
   };
 }
 
@@ -36,7 +37,6 @@ interface RoofTopFormData {
   };
 }
 
-// ✅ Floating Navbar Component
 const FloatingNavbar = ({
   activeTab,
   setActiveTab,
@@ -44,7 +44,7 @@ const FloatingNavbar = ({
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }) => (
-  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-3xl w-11/12 max-w-md flex justify-between py-3 px-4">
+  <div className="absolute z-50 top-5 left-80 transform -translate-x-1/2 bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-3xl w-11/12 max-w-md flex justify-between py-3 px-4">
     <button
       onClick={() => setActiveTab("profile")}
       className={`flex-1 text-center py-2 mx-1 rounded-2xl font-medium transition-all ${
@@ -76,7 +76,7 @@ const UserProfile = () => {
     fullName: "",
     email: "",
     phoneNumber: "",
-    location: { address: "", city: "" },
+    location: { state: "", city: "", address: "" },
   });
 
   const [userRoofTop, setUserRoofTop] = useState<RoofTopFormData>({
@@ -84,24 +84,37 @@ const UserProfile = () => {
   });
 
   const [formData, setFormData] = useState<FormData>(userProfile);
-  const [rooftopFormData, setRooftopFormData] =
-    useState<RoofTopFormData>(userRoofTop);
+  const [rooftopFormData, setRooftopFormData] = useState<RoofTopFormData>(userRoofTop);
 
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [city, setCity] = useState<number | null>(null);
 
   const [loadingLocation, setLoadingLocation] = useState(false);
 
   const [submitted, setSubmitted] = useState(false);
   const [rooftopSubmitted, setRooftopSubmitted] = useState(false);
 
-  // Profile form change
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => setFormData({ ...formData, [e.target.name]: e.target.value });
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    if (name === "state" || name === "city" || name === "address") {
+      setFormData((prev) => ({
+        ...prev,
+        location: {
+          ...prev.location,
+          [name]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
 
-  // Rooftop form change
+  // Rooftop handler is okay
   const handleRooftopChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -120,16 +133,18 @@ const UserProfile = () => {
   // Submit profile
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) return;
       const docRef = doc(firestore, "users", currentUser.uid);
-
       await updateDoc(docRef, {
         username: formData.username || currentUser.displayName || "",
         fullName: formData.fullName,
         phoneNumber: formData.phoneNumber,
-        location: { address: formData.location.address, city: city },
+        location: {
+          state: formData.location.state,
+          city: formData.location.city,
+          address: formData.location.address,
+        },
         geopoint: [latitude, longitude],
       });
 
@@ -156,11 +171,8 @@ const UserProfile = () => {
     e.preventDefault();
     onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) return;
-
       try {
         const docRef = doc(firestore, "users", currentUser.uid);
-
-        // Merge rooftop data safely into existing user doc
         await setDoc(
           docRef,
           {
@@ -176,7 +188,6 @@ const UserProfile = () => {
             setUserRoofTop({ rooftop: data.rooftop });
             setRooftopFormData({ rooftop: data.rooftop });
           } else {
-            // Initialize empty if still missing
             setUserRoofTop({
               rooftop: { area: "", type: "", dwellers: "", space: "" },
             });
@@ -185,7 +196,6 @@ const UserProfile = () => {
             });
           }
         }
-
         setRooftopSubmitted(true);
         setTimeout(() => setRooftopSubmitted(false), 3000);
       } catch (e) {
@@ -204,14 +214,16 @@ const UserProfile = () => {
 
         if (docSnap.exists()) {
           const userData = docSnap.data() as FormData & RoofTopFormData;
-
-          // Profile part
           setUserProfile({
             username: userData.username || "",
             fullName: userData.fullName || "",
             email: userData.email || "",
             phoneNumber: userData.phoneNumber || "",
-            location: { address: userData.location?.address || "", city: userData.location?.city || "" },
+            location: {
+              state: userData.location?.state || "",
+              city: userData.location?.city || "",
+              address: userData.location?.address || "",
+            },
           });
           setFormData({
             username: userData.username || "",
@@ -219,17 +231,15 @@ const UserProfile = () => {
             email: userData.email || "",
             phoneNumber: userData.phoneNumber || "",
             location: {
-              address: userData.location?.address || "",
+              state: userData.location?.state || "",
               city: userData.location?.city || "",
+              address: userData.location?.address || "",
             },
           });
-
-          // Rooftop part
           if (userData.rooftop) {
             setUserRoofTop({ rooftop: userData.rooftop });
             setRooftopFormData({ rooftop: userData.rooftop });
           } else {
-            // Initialize empty if no rooftop in Firestore
             setUserRoofTop({
               rooftop: { area: "", type: "", dwellers: "", space: "" },
             });
@@ -243,42 +253,32 @@ const UserProfile = () => {
     fetchUser();
   }, []);
 
-  // Detect location
+  // Detect location 
   const detectLocation = () => {
     if (typeof window === "undefined" || !navigator.geolocation) {
       alert("Geolocation not supported");
       return;
     }
-
     setLoadingLocation(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
         setLatitude(latitude);
         setLongitude(longitude);
-
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           );
           const data = await response.json();
-
-          // ✅ Safely extract city (works for cities, towns, or villages)
-          const detectedCity =
-            data.address.city ||
-            data.address.town ||
-            data.address.village ||
-            data.address.state ||
-            "";
-
           setFormData((prev) => ({
             ...prev,
             location: {
+              ...prev.location,
+              state: data.address.state || "",
+              city: data.address.city || data.address.town || data.address.village || "",
               address: data.display_name || "",
-              city: detectedCity,
             },
           }));
-          setCity(detectedCity);
         } catch (error) {
           console.error("Failed to fetch address:", error);
         } finally {
@@ -293,9 +293,12 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="flex flex-row-reverse mt-3">
+    <div className="flex flex-row-reverse mt-3 mb-10">
+      {/* Floating Navbar */}
+      <FloatingNavbar activeTab={activeTab} setActiveTab={setActiveTab} />
+
       {/* Left Side: User Profile Card */}
-      <div className="flex flex-col gap-4 w-full max-w-4xl ml-10">
+      <div className="flex flex-col gap-4 w-full max-w-4xl mx-10 mt-24">
         <div className="bg-gradient-to-r from-indigo-500 to-pink-500 p-1 rounded-2xl shadow-xl">
           <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col md:flex-row items-center gap-6 p-6">
             <Image
@@ -319,7 +322,6 @@ const UserProfile = () => {
             </div>
           </div>
         </div>
-
         {submitted && (
           <div className="mb-4 mt-5 p-3 bg-green-500/20 text-green-200 rounded-lg animate-pulse">
             ✅ Details updated successfully!
@@ -328,13 +330,13 @@ const UserProfile = () => {
       </div>
 
       {/* Right Side: Forms */}
-      <div className="relative w-full flex flex-col ml-5 h-[50%]">
+      <div className="relative w-full flex flex-col ml-5 mt-23">
         {activeTab === "profile" && (
           <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-lg transition hover:shadow-indigo-400/40">
             <h2 className="text-2xl font-semibold text-white mb-6">
               ✨ Update Your Profile
             </h2>
-            <form className="flex flex-col gap-5 pb-10" onSubmit={handleSubmit}>
+            <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
               {/* Full Name + Username */}
               <div className="flex gap-3 max-w-full">
                 <div className="flex flex-col gap-2 w-[120%]">
@@ -376,6 +378,43 @@ const UserProfile = () => {
                 />
               </div>
 
+              {/* State + City */}
+              <div className="flex gap-3 max-w-full">
+                <div className="flex flex-col gap-2 w-[120%]">
+                  <label>State</label>
+                  <select
+                    name="state"
+                    value={formData.location.state}
+                    onChange={handleChange}
+                    className="bg-white/10 text-white placeholder-white/50 border border-white/30 rounded-xl p-3 focus:ring-2 focus:ring-pink-400 outline-none"
+                    required
+                  >
+                    <option value="" className="bg-white/100 text-gray-900">Select State</option>
+                    {[{ id: 1, name: "West Bengal" }, { id: 2, name: "Maharastra" }, { id: 3, name: "Delhi" }]
+                      .map((item) => (
+                        <option
+                          key={item.id}
+                          value={item.name}
+                          className="bg-white/100 text-gray-900"
+                        >
+                          {item.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-2 w-[100%]">
+                  <label>City</label>
+                  <input
+                    type="text"
+                    name="city"
+                    placeholder="City"
+                    value={formData.location.city}
+                    onChange={handleChange}
+                    className="bg-white/10 text-white placeholder-white/50 border border-white/30 rounded-xl p-3 focus:ring-2 focus:ring-pink-400 outline-none"
+                  />
+                </div>
+              </div>
+
               {/* Address */}
               <div className="flex flex-col gap-2">
                 <label>Address</label>
@@ -383,15 +422,7 @@ const UserProfile = () => {
                   <textarea
                     name="address"
                     value={formData.location.address}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        location: {
-                          ...formData.location,
-                          address: e.target.value,
-                        },
-                      })
-                    }
+                    onChange={handleChange}
                     className="bg-white/10 text-white placeholder-white/50 border border-white/30 rounded-xl p-3 flex-1 resize-none focus:ring-2 focus:ring-pink-400 outline-none"
                     rows={2}
                     required
@@ -413,9 +444,6 @@ const UserProfile = () => {
                 Save Changes
               </button>
             </form>
-
-            {/* Floating Navbar */}
-            <FloatingNavbar activeTab={activeTab} setActiveTab={setActiveTab} />
           </div>
         )}
 
@@ -430,7 +458,7 @@ const UserProfile = () => {
               </div>
             )}
             <form
-              className="flex flex-col gap-5 pb-20"
+              className="flex flex-col gap-5 pb-3"
               onSubmit={handleRooftopSubmit}
             >
               <div className="flex gap-5 max-w-full items-center">
@@ -455,8 +483,8 @@ const UserProfile = () => {
                       onChange={handleRooftopChange}
                       required
                       className="appearance-none w-full p-3 pr-10 rounded-xl bg-gradient-to-r from-indigo-500/20 to-pink-500/20 
-               text-white font-medium border border-white/30 shadow-md backdrop-blur-md 
-               focus:ring-2 focus:ring-pink-400 outline-none transition-all duration-300"
+                  text-white font-medium border border-white/30 shadow-md backdrop-blur-md 
+                  focus:ring-2 focus:ring-pink-400 outline-none transition-all duration-300"
                     >
                       <option value="" className="bg-white/100 text-gray-900">
                         🌇 Select Rooftop Type
@@ -465,22 +493,33 @@ const UserProfile = () => {
                         value="Flat"
                         className="bg-white/100 text-gray-900"
                       >
-                        ⬜ Flat
+                        Flat
                       </option>
                       <option
                         value="Sloped"
                         className="bg-white/100 text-gray-900"
                       >
-                        🏠 Sloped
+                        Sloped
                       </option>
                       <option
-                        value="Terrace"
+                        value="asbestos"
                         className="bg-white/100 text-gray-900"
                       >
-                        🌿 Terrace
+                        Asbestos
+                      </option>
+                      <option
+                        value="metal"
+                        className="bg-white/100 text-gray-900"
+                      >
+                        Metal Sheet Roof
+                      </option>
+                      <option
+                        value="asbestos"
+                        className="bg-white/100 text-gray-900"
+                      >
+                        Bamboo Roof
                       </option>
                     </select>
-
                     {/* Dropdown Arrow */}
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none">
                       ▼
@@ -488,7 +527,6 @@ const UserProfile = () => {
                   </div>
                 </div>
               </div>
-
               <div className="flex gap-5 max-w-full items-center">
                 <div className="flex flex-col gap-2 w-[50%]">
                   <label>Number of Dwellers</label>
@@ -515,17 +553,13 @@ const UserProfile = () => {
                   />
                 </div>
               </div>
-
               <button
                 type="submit"
-                className="mt-4 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-semibold py-3 rounded-xl shadow-md hover:opacity-90 transition"
+                className="mt-4 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-semibold py-3 rounded-xl shadow-md hover:opacity-90 transition cursor-pointer"
               >
                 Submit Rooftop Details
               </button>
             </form>
-
-            {/* Floating Navbar */}
-            <FloatingNavbar activeTab={activeTab} setActiveTab={setActiveTab} />
           </div>
         )}
       </div>

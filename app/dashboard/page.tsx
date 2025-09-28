@@ -11,7 +11,10 @@ import Navbar from "@/components/UserDashboard/Navbar";
 import UserProfile from "@/components/UserDashboard/UserProfile";
 import Assessment from "@/components/UserDashboard/Assessment";
 import NoRoofTop from "@/components/UserDashboard/NoRooftop";
-import Products from "@/components/UserDashboard/ProductPage";
+import PDFReport from "@/components/UserDashboard/PdfReport";
+import Insights from "@/components/UserDashboard/Insights";
+import Community from "@/components/UserDashboard/Community";
+import InstallPage from "@/components/UserDashboard/Install";
 
 const Page = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -73,7 +76,7 @@ const Page = () => {
         />
 
         {/* Content */}
-        <main className="relative z-[-1] flex-1 pt-6 p-6 overflow-y-auto">
+        <main className="relative z-[-1] flex-1 overflow-y-auto">
           {/* Assessment */}
           <div className={activeItem === "assessment" ? "block" : "hidden"}>
             {!hasRooftop ? (
@@ -85,30 +88,29 @@ const Page = () => {
 
           {/* Insights */}
           <div className={activeItem === "insights" ? "block" : "hidden"}>
-            <h3 className="text-lg font-semibold mb-4">Analytics Overview</h3>
-            <div className="h-64 flex items-center justify-center text-sky-400">
-              📊 Chart Placeholder
-            </div>
+            <Insights />
           </div>
 
           {/* Installation */}
-          <div className={activeItem === "products" ? "block" : "hidden"}>
-            <Products />
+          <div className={activeItem === "install" ? "block" : "hidden"}>
+            <InstallPage />
           </div>
 
           {/* Community */}
-          <div className={activeItem === "community" ? "block" : "hidden"}>
-            <h3 className="text-lg font-semibold mb-4">Users List</h3>
-            <ul className="space-y-2">
-              <li className="bg-white/10 p-3 rounded-md">👤 User 1</li>
-              <li className="bg-white/10 p-3 rounded-md">👤 User 2</li>
-              <li className="bg-white/10 p-3 rounded-md">👤 User 3</li>
-            </ul>
+          <div className={`${activeItem === "community" ? "block" : "hidden"}`}>
+            <Community />
           </div>
 
           {/* Pro Users */}
           <div className={activeItem === "pro" ? "block" : "hidden"}>
             <h1>Pro Users</h1>
+          </div>
+
+          {/* Pdf Report */}
+          <div className={activeItem === "pdf" ? "block" : "hidden"}>
+            {/* <PDFViewer className="w-100 h-100">
+            </PDFViewer> */}
+              <PDFReport />
           </div>
 
           {/* Profile */}
