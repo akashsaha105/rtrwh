@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { Droplets, Home, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube, Heart } from 'lucide-react'
 
-export default function Footer({ t, lang }: { t: Record<string, unknown>, lang: string }) {
+export default function Footer({ lang }: { lang?: string }) {
   const router = useRouter()
 
   const quickLinks = [

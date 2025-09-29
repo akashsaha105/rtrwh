@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Image from "next/image";
@@ -302,8 +301,8 @@ const UserProfile = () => {
       <div className="flex flex-col gap-4 w-full max-w-4xl mx-10 mt-24">
         <div className="bg-gradient-to-r from-indigo-500 to-pink-500 p-1 rounded-2xl shadow-xl">
           <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col md:flex-row items-center gap-6 p-6">
-            <img
-              src='/profie'
+            <Image
+              src={profile}
               width={130}
               height={130}
               alt="Profile Image"

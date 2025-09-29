@@ -58,7 +58,7 @@ const steps = [
   }
 ]
 
-export default function How({ t }: { t: Record<string, unknown> }) {
+export default function How({}) {
   return (
     <section id="how" className="py-20 relative">
       {/* Background Elements */}

@@ -62,7 +62,7 @@ const additionalBenefits = [
 ]
 
 
-export default function Why({ }: { t: Record<string, unknown> }) {
+export default function Why({}) {
   return (
     <section id="why" className="py-20 relative">
       {/* Background Elements */}
