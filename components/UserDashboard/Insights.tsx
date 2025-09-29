@@ -42,7 +42,7 @@ const Insights = () => {
   return (
     <>
       <div>
-        <div className="p-8 min-h-screen text-white">
+        <div className=" p-8 min-h-screen text-white">
           {/* Page Header */}
           <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
             <BarChart2 className="h-8 w-8 text-green-400" />

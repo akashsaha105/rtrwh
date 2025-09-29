@@ -3,10 +3,10 @@
 import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
-import LanguageSelector from "../LanguageSelector";
+import React, { useEffect, useState } from "react";
 import SearchBar from "../SearchBar";
 import { BellIcon } from "@heroicons/react/24/outline"; // Using Heroicons for clean icons
+import LanguageSwitcher from "../LanguageSwitcher";
 
 // Dashboard Header
 interface DashboardHeaderProps {
@@ -18,11 +18,22 @@ interface DashboardHeaderProps {
 const Navbar: React.FC<DashboardHeaderProps> = ({
   status,
   // activeItem,
-  setActiveItem
+  setActiveItem,
 }) => {
-  const [language, setLanguage] = useState("EN");
+  const [language, setLanguage] = useState("EN"); // default English
+
   const [notifications, setNotifications] = useState(3); // Example: 3 unread notifications
   const router = useRouter();
+
+  // ✅ Load language from localStorage on first render
+  useEffect(() => {
+    const storedLang = localStorage.getItem("app_language");
+    if (storedLang) {
+      setLanguage(storedLang);
+    }
+  }, []); 
+
+  console.log(language);
 
   const handleSignOut = async () => {
     try {
@@ -46,7 +57,7 @@ const Navbar: React.FC<DashboardHeaderProps> = ({
         </h1>
       </div>
       {/* Search Button */}
-      <SearchBar setActiveItem={setActiveItem}/>
+      <SearchBar setActiveItem={setActiveItem} />
 
       {/* Right: Status + Notification + Language + Sign Out */}
       <div className="flex items-center gap-5 relative z-[9999]">
@@ -80,7 +91,7 @@ const Navbar: React.FC<DashboardHeaderProps> = ({
         </div>
 
         {/* Language Selector */}
-        <LanguageSelector language={language} setLanguage={setLanguage} />
+        <LanguageSwitcher language={language} setLanguage={setLanguage} page="dashboard" />
 
         {/* Sign Out Button */}
         <button
@@ -88,7 +99,7 @@ const Navbar: React.FC<DashboardHeaderProps> = ({
           className="relative inline-flex items-center justify-center px-6 py-2 rounded-full text-sm font-semibold 
                      text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
                      shadow-lg hover:shadow-indigo-500/50 transition-all duration-300
-                     hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                     hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-pink-400 cursor-pointer"
         >
           🚪 Sign Out
         </button>

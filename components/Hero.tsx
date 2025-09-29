@@ -1,87 +1,115 @@
-"use client";
+'use client'
+import React, { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Droplets, Home, Zap, Camera, Calculator, ChevronDown, ChevronUp } from 'lucide-react'
 
-import ParticlesBackground from "./ParticlesBackground";
-import { ArrowLongRightIcon } from "@heroicons/react/16/solid";
-import Link from "next/link";
+import Demo from '@/components/Demo'
+
+
+
+
+function HandleLearnMore() {
+  window.location.href = 'https://cwas.org.in/resources/file_manager/module_3-3_1_rwh_guidelines.pdf';
+}
 
 export default function Hero() {
+
+    const [isExpanded, setIsExpanded] = useState(false);
   return (
-    <section
-      id="home"
-      className="relative h-screen w-full bg-gradient-to-r blue-900 via-indigo-900 shadow-xl border border-blue-950/40 hover:bg-blue-800 ring-2 ring-sky-500 bg-indigo-950 from-sky-800 to-indigo-800 text-sky-30 placeholder:text-indigo-300 focus:ring-sky-500 hover:text-sky-200"
-    >
-      {/* Particle Background */}
-      <ParticlesBackground />
+    <section id="home" className="relative overflow-hidden min-h-screen flex items-center 10">
+      {/* Background Effects */}
+      {/* <div className="absolute inset-0 -z-10">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#0077b6] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-[#8251b9] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-6000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-[#48bb78] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-5000"></div>
+      </div> */}
 
-      {/* Main Hero Content */}
-      <div className="h-full flex items-center pl-6 md:pl-20">
-        <div className="space-y-6 relative z-10">
-          <span className="text-5xl md:text-6xl font-bold text-white max-w-2xl leading-tight block">
-            Save Rain Today, Sustain Life{" "}
-            <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 via-blue-100 to-blue-100 bg-clip-text text-transparent animate-[gradient-move_4s_ease-in-out_infinite] bg-[length:200%_auto]">
-              Tomorrow
-            </span>
-          </span>
-
-          <p className="mb-6 text-lg md:text-xl max-w-2xl leading-relaxed bg-gradient-to-r from-blue-100 to-blue-300 bg-clip-text text-transparent">
-            We help you capture rooftop rain, store it smartly, and recharge the
-            ground beneath your home—reducing water bills, preventing shortages,
-            and ensuring every drop finds purpose.
-          </p>
-
-          <Link
-            href="#features"
-            className="inline-flex gap-2 items-center rounded-xl border border-white/20 px-8 py-3 bg-zinc-900 text-white font-light text-lg hover:bg-zinc-800 transition-colors"
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto px-6">
+        {/* Left Content */}
+        <div className="space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-6"
           >
-            Analyze <ArrowLongRightIcon width={28} />
-          </Link>
-        </div>
-      </div>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-[#0077b6] to-[#00b4d8]">
+                <Droplets className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-sm font-medium text-[#00b4d8] uppercase tracking-wide">
+                AI-Powered Assessment
+              </span>
+            </div>
 
-      {/* Subtle Wave Animation at Bottom */}
-      <div className="absolute bottom-0 left-0 w-full h-32 overflow-hidden pointer-events-none">
-        <svg
-          className="absolute bottom-0 w-full h-full animate-[waterwave_10s_linear_infinite]"
-          viewBox="0 0 1200 120"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="rainwater-gradient" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#0ea5e9" />
-              <stop offset="50%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#6366f1" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M0,20 C150,80 350,0 600,60 C850,120 1050,20 1200,60 L1200,120 L0,120 Z"
-            fill="url(#rainwater-gradient)"
-            className="opacity-50"
-          />
-          <path
-            d="M0,40 C150,100 350,20 600,80 C850,140 1050,40 1200,80 L1200,120 L0,120 Z"
-            fill="url(#rainwater-gradient)"
-            className="opacity-30"
-          />
-          <path
-            d="M0,60 C150,120 350,40 600,100 C850,160 1050,60 1200,100 L1200,120 L0,120 Z"
-            fill="url(#rainwater-gradient)"
-            className="opacity-20"
-          />
-        </svg>
-        <style>
-          {`
-            @keyframes gradient-move {
-              0% { background-position: 0% center; }
-              50% { background-position: 100% center; }
-              100% { background-position: 0% center; }
-            }
-            @keyframes waterwave {
-              0% { transform: translateX(0); }
-              100% { transform: translateX(-100px); }
-            }
-          `}
-        </style>
+            <h1 className="text-5xl md:text-5xl font-extrabold leading-tight">
+              <span className="bg-gradient-to-r from-white via-[#00b4d8] to-[#48bb78] bg-clip-text text-transparent">
+                Assess Your Rooftop
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-[#48bb78] to-[#00b4d8] bg-clip-text text-transparent">
+                Rainwater Harvesting
+              </span>
+              <br />
+              <span className="text-white">
+                Potential Instantly
+              </span>
+            </h1>
+
+            <p className="text-xl text-gray-300 max-w-2xl leading-relaxed">
+              AI-powered, on-spot assessment of rainwater harvesting and artificial recharge structures. 
+              Get instant calculations for optimal tank sizes and recharge potential.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="flex flex-col sm:flex-row gap-4"
+          >
+            <button 
+              className="px-8 py-4 bg-gradient-to-r from-[#0077b6] to-[#00b4d8] text-white rounded-xl shadow-glow hover:scale-105 transform transition font-semibold text-lg flex items-center justify-center space-x-2"
+              onClick={()=>window.location.href='Signup'}
+            >
+              <Zap className="w-5 h-5" />
+              <span>Try Free Assessment</span>
+            </button>
+
+            <button 
+              className="px-8 py-4 glass border border-gray-600 text-white rounded-xl hover:scale-105 transform transition font-semibold text-lg"
+              onClick={HandleLearnMore}
+            >
+              Learn More
+            </button>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="grid grid-cols-3 gap-8 pt-8"
+          >
+            <div className="text-center">
+              <div className="text-3xl font-bold text-[#00b4d8]">40-60%</div>
+              <div className="text-sm text-gray-400">Water Bill Savings</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-[#48bb78]">1000+</div>
+              <div className="text-sm text-gray-400">Liters Saved/Year</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-[#0077b6]">5 Min</div>
+              <div className="text-sm text-gray-400">Assessment Time</div>
+            </div>
+          </motion.div>
+        </div>
+  
+        {/* Right Image */}
+        
+      <Demo/>
       </div>
     </section>
-  );
+  )
 }

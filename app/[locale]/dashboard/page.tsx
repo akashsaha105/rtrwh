@@ -15,6 +15,7 @@ import PDFReport from "@/components/UserDashboard/PdfReport";
 import Insights from "@/components/UserDashboard/Insights";
 import Community from "@/components/UserDashboard/Community";
 import InstallPage from "@/components/UserDashboard/Install";
+import ProDashboard from "@/components/UserDashboard/ProUser";
 
 const Page = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -67,7 +68,7 @@ const Page = () => {
       />
 
       {/* Main Section */}
-      <div className="relative z-50 flex-1 flex flex-col">
+      <div className="relative z-10 flex-1 flex flex-col">
         {/* Navbar */}
         <Navbar
           status="Inactive"
@@ -103,7 +104,7 @@ const Page = () => {
 
           {/* Pro Users */}
           <div className={activeItem === "pro" ? "block" : "hidden"}>
-            <h1>Pro Users</h1>
+            <ProDashboard />
           </div>
 
           {/* Pdf Report */}

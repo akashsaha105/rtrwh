@@ -1,21 +1,9 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from 'next-intl/plugin'
 
-const nextConfig: NextConfig = {
-  /* config options here */
-    webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Shim Node modules that are not available in the browser
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        dgram: false,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-    return config;
-  },
+const withNextIntl: (config?: NextConfig | undefined) => NextConfig = createNextIntlPlugin();
 
-};
+const nextConfig: NextConfig = {};
 
-export default nextConfig;
+export default withNextIntl(nextConfig)
+

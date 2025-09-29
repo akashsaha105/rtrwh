@@ -2,7 +2,8 @@
 
 import { auth, firestore } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
+import { useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
@@ -22,6 +23,7 @@ interface RoofTopData {
 }
 
 async function getCoordinates(cityName: string) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${cityName}`
@@ -46,46 +48,51 @@ function sqftToSqm(sqft: number): number {
 }
 
 const Assessment: React.FC = () => {
+  const t = useTranslations("assessment");
+
   // User city
   const [city, setCity] = useState("");
-
+  
   // Dashboard Overview State
   const [area, setArea] = useState("");
   const [type, setType] = useState("");
   const [space, setSpace] = useState("");
   const [dwellers, setDwellers] = useState("");
-
+  
   // Rainfall
   const [rainfall, setRainfall] = useState(0); // in mm
 
   // Load user data
   useEffect(() => {
-    onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         const docRef = doc(firestore, "users", currentUser.uid);
 
-        const citysnap = await getDoc(docRef);
-        const roofTopSnap = await getDoc(docRef);
+        const unsubscribeSnapshot = onSnapshot(docRef, (snapshot) => {
+          if (snapshot.exists()) {
+            try {
+              const data = snapshot.data();
+              const getCity = data as City;
+              const getRoofTopData = data as RoofTopData;
 
-        if (roofTopSnap.exists() || citysnap.exists()) {
-          try {
-            const getCity = citysnap.data() as City;
-            const getRoofTopData = roofTopSnap.data() as RoofTopData;
-
-            setCity(getCity.location.city);
-
-            setArea(getRoofTopData.rooftop.area);
-            setType(getRoofTopData.rooftop.type);
-            setSpace(getRoofTopData.rooftop.space);
-            setDwellers(getRoofTopData.rooftop.dwellers);
-          } catch (e) {
-            console.log(e);
+              setCity(getCity?.location?.city || "");
+              setArea(getRoofTopData?.rooftop?.area || "");
+              setType(getRoofTopData?.rooftop?.type || "");
+              setSpace(getRoofTopData?.rooftop?.space || "");
+              setDwellers(getRoofTopData?.rooftop?.dwellers || "");
+            } catch (e) {
+              console.log(e);
+            }
+          } else {
+            console.log("No Data found");
           }
-        } else {
-          console.log("No Data found");
-        }
+        });
+
+        return () => unsubscribeSnapshot(); // cleanup snapshot
       }
     });
+
+    return () => unsubscribe(); // cleanup auth
   }, []);
 
   // Fetch annual rainfall from Open-Meteo
@@ -128,24 +135,24 @@ const Assessment: React.FC = () => {
 
   // Rooftop Efficiency
   let runoffCoefficient = 0.9;
-  
-  switch (type){
+
+  switch (type) {
     case "Flat":
-      runoffCoefficient = 0.75
-    
+      runoffCoefficient = 0.75;
+
     case "Sloped":
-      runoffCoefficient = 0.85
+      runoffCoefficient = 0.85;
 
     case "Asbestos":
-      runoffCoefficient = 0.7
-    
+      runoffCoefficient = 0.7;
+
     case "Metal Sheet Roof":
-      runoffCoefficient = 0.90
-    
+      runoffCoefficient = 0.9;
+
     case "Bamboo Roof":
-      runoffCoefficient = 0.65
+      runoffCoefficient = 0.65;
   }
-  
+
   const collectedRainfall =
     sqftToSqm(+area) * (rainfall / 1000) * runoffCoefficient * 1000;
   const efficiency = (collectedRainfall / harvestPotential) * 100;
@@ -175,14 +182,15 @@ const Assessment: React.FC = () => {
           id="overview"
           data-tab="assessment"
         >
-          Dashboard Overview
+          {/* Dashboard Overview */}
+          {t("dashboardOverview")}
         </h2>
         <div className="relative **:z-[-1] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { title: "Rooftop Area", value: area + " sq. ft." },
-            { title: "Rooftop Type", value: type },
-            { title: "Available Space", value: space + " sq. ft." },
-            { title: "No. of Dwellers", value: dwellers },
+            { title: t("rooftopArea"), value: area + " sq. ft." },
+            { title: t("rooftopType"), value: type },
+            { title: t("availableSpace"), value: space + " sq. ft." },
+            { title: t("noOfDwellers"), value: dwellers },
           ].map((item, i) => (
             <div
               key={i}
@@ -206,12 +214,12 @@ const Assessment: React.FC = () => {
       {/* Water Storage Analysis */}
       <div className="mt-10">
         <h3 className="text-lg font-semibold mb-4" id="harvest_1">
-          Rainwater Harvest Analysis
+          {t("rainwaterHarvestAnalysis")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-6 rounded-2xl bg-green-900/20 backdrop-blur-md border border-green-500/30 shadow-md">
             <h3 className="text-lg font-semibold" id="harvest_2">
-              Total Harvest Potential
+              {t("totalHarvestPotential")}
             </h3>
             <p className="text-2xl font-bold mt-2 text-green-400">
               {/* 15,000 Liters / Year */}
@@ -220,7 +228,7 @@ const Assessment: React.FC = () => {
           </div>
 
           <div className="p-6 rounded-2xl bg-blue-900/20 backdrop-blur-md border border-blue-500/30 shadow-md">
-            <h3 className="text-lg font-semibold">Per Person Availability</h3>
+            <h3 className="text-lg font-semibold">{t("perPersonAvailability")}</h3>
             <p className="text-2xl font-bold mt-2 text-blue-400">
               {Math.round(perPersonAvail).toLocaleString()} Liters / Year
             </p>
@@ -236,18 +244,16 @@ const Assessment: React.FC = () => {
 
           {/* Heading */}
           <h4 className="text-2xl font-bold text-white mb-3">
-            How Efficient Is Your Rooftop ?
+            {t("roofEfficiencyHeading")}
           </h4>
 
           {/* Subheading / Message */}
           <p className="text-lg text-gray-200 mb-4">
             {efficiency >= 85
-              ? `🏆 Excellent! Your roof is a rain-catching hero!`
+              ? t("roofEfficiencyExcellent")
               : efficiency >= 60
-              ? `🌤 Good job! A little tweak could boost it further.`
-              : `⚠️ Only ${Math.round(
-                  efficiency
-                )}% collected… check your gutters and rooftop!`}
+              ? t("roofEfficiencyGood")
+              : t("roofEfficiencyLow")}
           </p>
 
           {/* Efficiency Percentage */}
@@ -255,7 +261,7 @@ const Assessment: React.FC = () => {
             <span className="text-white font-bold text-lg">
               {Math.round(efficiency)}%
             </span>
-            <span className="text-gray-300 text-sm">Efficiency</span>
+            <span className="text-gray-300 text-sm">{t("efficiency")}</span>
           </div>
 
           {/* Progress Bar */}
@@ -276,7 +282,7 @@ const Assessment: React.FC = () => {
       {/* Recommendation for Groundwater Recharge Structures */}
       <div className="mt-12 mb-12">
         <h4 className="text-2xl font-semibold text-green-400 mb-6 flex items-center gap-2">
-          💧 Recharge Structure Recommendations
+          💧{t("rechargeStructureRecommendations")}
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
@@ -308,17 +314,17 @@ const Assessment: React.FC = () => {
               </h5>
               <ul className="space-y-2 text-sm text-white/80">
                 <li>
-                  <strong>Dimension:</strong> {structure.dimension}
+                  <strong>{t("dimension")}:</strong> {structure.dimension}
                 </li>
                 <li>
-                  <strong>Capacity:</strong> {structure.capacity}
+                  <strong>{t("capacity")}:</strong> {structure.capacity}
                 </li>
                 <li>
-                  <strong>Best for:</strong> {structure.suitability}
+                  <strong>{t("bestFor")}:</strong> {structure.suitability}
                 </li>
               </ul>
               <button className="mt-4 px-4 py-2 bg-green-600/60 hover:bg-green-500 text-white rounded-lg text-sm cursor-pointer">
-                Learn More
+                {t("learnMore")}
               </button>
             </div>
           ))}
@@ -328,7 +334,7 @@ const Assessment: React.FC = () => {
       {/* Recommendation for Storage Tank */}
       <div className="mb-12">
         <h4 className="text-2xl font-semibold text-blue-400 mb-6 flex items-center gap-2">
-          🛢️ Storage Tank Recommendations
+          🛢️ {t("storageTankRecommendations")}
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {[
@@ -354,10 +360,10 @@ const Assessment: React.FC = () => {
               </h5>
               <ul className="space-y-2 text-sm text-white/80">
                 <li>
-                  <strong>Dimension:</strong> {tank.dimension}
+                  <strong>{t("dimension")}:</strong> {tank.dimension}
                 </li>
                 <li>
-                  <strong>Capacity:</strong> {tank.capacity}
+                  <strong>{t("capacity")}:</strong> {tank.capacity}
                 </li>
               </ul>
 
@@ -369,10 +375,10 @@ const Assessment: React.FC = () => {
         </div>
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-6 rounded-2xl bg-blue-900/20 backdrop-blur-md border border-blue-500/30 shadow-md space-y-5">
-            <h3 className="text-lg font-semibold">Required Tank Volume</h3>
+            <h3 className="text-lg font-semibold">{t("requiredTankVolume")}</h3>
             <div className="flex flex-col gap-3">
               <label htmlFor="">
-                Number of days to store water without rain
+                {t("numberOfDays")}
               </label>
               <input
                 type="text"
@@ -391,7 +397,7 @@ const Assessment: React.FC = () => {
           </div>
           <div className="p-6 rounded-2xl bg-blue-900/20 backdrop-blur-md border border-blue-500/30 shadow-md space-y-5">
             <h3 className="text-lg font-semibold">
-              Tank Utilization Efficiency
+              {t("tankUtilizationEfficiency")}
             </h3>
             <ul className="list-disc ml-5 text-gray-400">
               <li>Shows how effectively your tank is used.</li>
@@ -421,7 +427,7 @@ const Assessment: React.FC = () => {
       {/* ROI */}
       <div className="bg-gradient-to-r from-sky-900/30 to-indigo-900/30 p-6 rounded-2xl border border-sky-400/30 backdrop-blur-md shadow-xl hover:scale-[1.01] transition">
         <h4 className="text-xl font-semibold text-sky-300">
-          ⏳ ROI (Payback Time)
+          ⏳ {t("roiHeading")}
         </h4>
         <p className="text-lg mt-2 text-gray-200">
           Your system will pay for itself in around{" "}
@@ -432,7 +438,7 @@ const Assessment: React.FC = () => {
       {/* Usage Breakdown Pie Chart */}
       <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Usage Breakdown</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("usageBreakdown")}</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
@@ -458,9 +464,9 @@ const Assessment: React.FC = () => {
 
         {/* Environmental Impact Card */}
         <div className="p-6 rounded-2xl bg-emerald-900/20 backdrop-blur-md border border-emerald-500/30 shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Environmental Impact</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("environmentalImpact")}</h3>
           <p className="text-gray-200 mb-2">
-            By installing rooftop rainwater harvesting, you can save:
+            {t("impactDescription")}:
           </p>
           <ul className="space-y-2 text-emerald-300 font-semibold">
             <li>🌍 Reduce 30% dependency on groundwater</li>
@@ -473,7 +479,7 @@ const Assessment: React.FC = () => {
       {/* Benefits */}
       <div>
         <h4 className="text-xl font-semibold text-purple-300 mt-10 my-4">
-          🌱 Key Benefits
+          🌱 {t("keyBenefits")}
         </h4>
         <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
@@ -501,23 +507,23 @@ const Assessment: React.FC = () => {
           id="what-if"
           data-tab="assessment"
         >
-          What-If Analysis
+          {t("whatIfAnalysis")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-6 rounded-2xl bg-purple-900/20 backdrop-blur-md border border-purple-500/30 shadow-md">
-            <h3 className="text-lg font-semibold">Double Rooftop Area</h3>
+            <h3 className="text-lg font-semibold">{t("doubleRooftopArea")}</h3>
             <p className="text-xl font-bold text-purple-400 mt-2">
               30,000 Liters / Year
             </p>
           </div>
           <div className="p-6 rounded-2xl bg-pink-900/20 backdrop-blur-md border border-pink-500/30 shadow-md">
-            <h3 className="text-lg font-semibold">Reduce Dwellers by Half</h3>
+            <h3 className="text-lg font-semibold">{t("reduceDwellers")}</h3>
             <p className="text-xl font-bold text-pink-400 mt-2">
               4,000 Liters / Person
             </p>
           </div>
           <div className="p-6 rounded-2xl bg-yellow-900/20 backdrop-blur-md border border-yellow-500/30 shadow-md">
-            <h3 className="text-lg font-semibold">Add Storage Tank</h3>
+            <h3 className="text-lg font-semibold">{t("addStorageTank")}</h3>
             <p className="text-xl font-bold text-yellow-400 mt-2">
               5,000 Liters Extra Capacity
             </p>

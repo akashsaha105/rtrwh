@@ -1,42 +1,53 @@
+"use client"
+
+/* eslint-disable @next/next/no-img-element */
 import React, { FormEvent, useState } from "react";
 import { Modal } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@reduxjs/toolkit/query";
 import { AppDispatch } from "@/redux/store";
-import { openSignupModal, closeSignupModal, openLoginModal } from "@/redux/slices/modalSlice";
-import { EyeIcon, EyeSlashIcon, XMarkIcon } from "@heroicons/react/16/solid";
-// import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
+import {
+  openSignupModal,
+  closeSignupModal,
+  openLoginModal,
+} from "@/redux/slices/modalSlice";
+import { EyeIcon, EyeSlashIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 import { auth } from "@/firebase";
+import { motion } from "framer-motion";
 import LoadingPage from "../Loading";
 
 function getUsernameFromEmail(email: string | null): string {
-  if (!email) return '';
-  const atIndex = email.lastIndexOf('@');
-  if (atIndex === -1) return email; // Return whole string if no '@'
-  return email.substring(0, atIndex);
+  if (!email) return "";
+  const atIndex = email.lastIndexOf("@");
+  return atIndex === -1 ? email : email.substring(0, atIndex);
 }
 
 const SignupModal = () => {
-
-  // To display the Login Modal
   const isOpen = useSelector(
     (state: RootState) => state.modals.signupModalIsOpen
   );
   const dispatch: AppDispatch = useDispatch();
 
-  // To showPassword functionality
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirnPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Signup Authentication functionality
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
 
   const handleSignup = async (event: FormEvent) => {
     event.preventDefault();
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+    setLoading(true);
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -47,173 +58,176 @@ const SignupModal = () => {
 
       const user = userCredential.user;
 
-      await updateProfile(userCredential.user, {
-        displayName: getUsernameFromEmail(user.email)
+      await updateProfile(user, {
+        displayName: getUsernameFromEmail(user.email),
       });
-    
-      await sendEmailVerification(user)
 
-      // Temporarily store user data in local storage
-      const username = getUsernameFromEmail(email)
+      await sendEmailVerification(user);
 
-      localStorage.setItem(
-        "registrationData",
-        JSON.stringify({
-          email,
-          username,
-          password
-        })
-      );
+      alert("Registration successful! Please check your email for verification");
 
-      alert(
-        "Registration successful! Please check your email for verification"
-      );
-      
-      setLoading(true)
-
-      // Clear form fields
       setEmail("");
       setPassword("");
+      setConfirmPassword("");
 
+      dispatch(closeSignupModal());
+      dispatch(openLoginModal()); // redirect to login after signup
     } catch (error) {
-      if (error instanceof Error){
+      if (error instanceof Error) {
         alert(error.message);
       } else {
-        alert("An unknown error occurred")
+        alert("An unknown error occurred");
       }
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    window.location.reload()
+  if (loading) return <LoadingPage />;
 
-    return (<LoadingPage />)
-  }
   return (
     <div>
       <button
-        className=" bg-white/15 text-white px-4 py-2 rounded-md hover:bg-white/25 transition cursor-pointer"
+        className="px-5 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl shadow-lg hover:scale-105 transition font-semibold"
         onClick={() => dispatch(openSignupModal())}
       >
         Sign up
-        {/* Sign up <ArrowRight size={18} /> */}
       </button>
+
       <Modal
         open={isOpen}
         onClose={() => dispatch(closeSignupModal())}
         className="flex justify-center items-center"
       >
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-md">
-          <div className="relative w-full max-w-md px-8 py-10 rounded-3xl bg-white/20 backdrop-blur-xl overflow-hidden">
-            {/* Outer Gradient Animation */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 animate-gradientFlow opacity-60"
-              style={{
-                WebkitMaskImage:
-                  "linear-gradient(rgba(255,255,255,0.8) 70%, transparent 100%)",
-                maskImage:
-                  "linear-gradient(rgba(255,255,255,0.8) 70%, transparent 100%)",
-              }}
-            />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative w-full max-w-md bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-700"
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => dispatch(closeSignupModal())}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white cursor-pointer"
+              aria-label="Close"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
 
-            {/* Modal Content */}
-            <div className="relative z-10 select-none text-gray-200">
-              {/* Close Button */}
-              <button
-                onClick={() => dispatch(closeSignupModal())}
-                className="absolute top-[-20] right-[-10] flex items-center justify-center w-10 rounded-full text-gray-200 hover:text-white focus:outline-none cursor-pointer"
-                aria-label="Close"
-              >
-                <XMarkIcon className="w-6 h-6" />
-              </button>
+            {/* Title */}
+            <h2 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-white via-sky-200 to-cyan-300 bg-clip-text text-transparent">
+              Create Account
+            </h2>
 
-              {/* Title */}
-              <h2 className="text-3xl font-bold text-center mb-10 bg-gradient-to-r from-white/100 via-sky-200 to-white/70 bg-clip-text text-transparent">
-                Welcome
-              </h2>
-
-              {/* Form */}
-              <form onSubmit={handleSignup} className="space-y-6">
+            {/* Form */}
+            <form onSubmit={handleSignup} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Email
+                </label>
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder="you@example.com"
                   required
-                  className="w-full p-3 rounded-xl bg-white/30 text-gray-900 placeholder-gray-600 outline-none focus:ring-2 focus:ring-blue-400 transition"
+                  className="w-full px-4 py-2 bg-gray-800/70 text-white border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   onChange={(e) => setEmail(e.target.value)}
+                  value={email}
                 />
+              </div>
 
-                {/* Password Input with Eye Toggle */}
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    required
-                    className="w-full p-3 rounded-xl bg-white/30 text-gray-900 placeholder-gray-600 outline-none focus:ring-2 focus:ring-blue-400 transition pr-12"
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-800 focus:outline-none"
-                  >
-                    {showPassword ? (
-                      <EyeSlashIcon className="w-5 h-5" />
-                    ) : (
-                      <EyeIcon className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                {/* Password Input with Eye Toggle */}
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm Password"
-                    required
-                    className="w-full p-3 rounded-xl bg-white/30 text-gray-900 placeholder-gray-600 outline-none focus:ring-2 focus:ring-blue-400 transition pr-12"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirnPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-800 focus:outline-none"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeSlashIcon className="w-5 h-5" />
-                    ) : (
-                      <EyeIcon className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-
+              {/* Password */}
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Password
+                </label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  required
+                  className="w-full px-4 py-2 bg-gray-800/70 text-white border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  onChange={(e) => setPassword(e.target.value)}
+                  value={password}
+                />
                 <button
-                  type="submit"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-800 to-blue-600 text-white font-semibold cursor-pointer"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-11 right-3 flex items-center text-gray-400 hover:text-gray-200"
                 >
-                  Sign up
+                  {showPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
                 </button>
-              </form>
+              </div>
 
-              {/* Footer */}
-              <p className="mt-8 text-center text-sm text-gray-300">
-                Already have an account?{" "}
-                <a className="text-cyan-300 underline cursor-pointer" onClick={(e) => {e.preventDefault(); dispatch(closeSignupModal()); dispatch(openLoginModal()) }}>
-                  Log In
-                </a>
-              </p>
+              {/* Confirm Password */}
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Confirm Password
+                </label>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Re-enter your password"
+                  required
+                  className="w-full px-4 py-2 bg-gray-800/70 text-white border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  value={confirmPassword}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-11 right-3 flex items-center text-gray-400 hover:text-gray-200"
+                >
+                  {showConfirmPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-2 rounded-lg shadow-md hover:opacity-90 transition font-semibold"
+              >
+                {loading ? "Creating Account..." : "Sign Up"}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="flex items-center my-6">
+              <div className="flex-grow h-px bg-gray-700" />
+              <span className="px-3 text-gray-400 text-sm">or</span>
+              <div className="flex-grow h-px bg-gray-700" />
             </div>
-          </div>
 
-          <style>{`
-        @keyframes gradientFlow {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        .animate-gradientFlow {
-          background-size: 200% 200%;
-          animation: gradientFlow 8s ease infinite;
-        }
-      `}</style>
+            {/* Social Signup */}
+            <button className="w-full flex items-center justify-center gap-2 border border-gray-700 bg-gray-800/80 text-gray-300 py-2 rounded-lg hover:bg-gray-700 transition">
+              <img
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                alt="Google"
+                className="w-5 h-5"
+              />
+              Continue with Google
+            </button>
+
+            {/* Footer */}
+            <p className="mt-6 text-center text-sm text-gray-300">
+              Already have an account?{" "}
+              <a
+                className="text-cyan-400 underline cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(closeSignupModal());
+                  dispatch(openLoginModal());
+                }}
+              >
+                Log In
+              </a>
+            </p>
+          </motion.div>
         </div>
       </Modal>
     </div>

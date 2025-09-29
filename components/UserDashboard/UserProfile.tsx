@@ -302,7 +302,7 @@ const UserProfile = () => {
         <div className="bg-gradient-to-r from-indigo-500 to-pink-500 p-1 rounded-2xl shadow-xl">
           <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col md:flex-row items-center gap-6 p-6">
             <Image
-              src={profile}
+              src='/profile'
               width={130}
               height={130}
               alt="Profile Image"
@@ -502,19 +502,19 @@ const UserProfile = () => {
                         Sloped
                       </option>
                       <option
-                        value="asbestos"
+                        value="Asbestos"
                         className="bg-white/100 text-gray-900"
                       >
                         Asbestos
                       </option>
                       <option
-                        value="metal"
+                        value="Metal Sheet Roof"
                         className="bg-white/100 text-gray-900"
                       >
                         Metal Sheet Roof
                       </option>
                       <option
-                        value="asbestos"
+                        value="Bamboo Roof"
                         className="bg-white/100 text-gray-900"
                       >
                         Bamboo Roof

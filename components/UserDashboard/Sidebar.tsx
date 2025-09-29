@@ -8,6 +8,7 @@ import WeatherForecast from "./WeatherForecast";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, firestore } from "@/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { useTranslations } from "next-intl";
 
 interface DashboardSideBarProps {
   username?: string | null | undefined;
@@ -27,6 +28,8 @@ const SideBar: React.FC<DashboardSideBarProps> = ({
   const [collapsed, setCollapsed] = useState(false);
   const [city, setCity] = useState("")
 
+  const t = useTranslations("sidebar")
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -37,37 +40,37 @@ const SideBar: React.FC<DashboardSideBarProps> = ({
   const SideBarItems = [
     {
       id: "assessment",
-      name: "Assessment",
+      name: t("assessment"),
       icon: <ChartPieIcon width={width} height={height} />,
       href: "/dashboard/analytics",
     },
     {
       id: "insights",
-      name: "Insights",
+      name: t("insights"),
       icon: <DownloadIcon width={width} height={height} />,
       href: "/dashboard/reports",
     },
     {
       id: "install",
-      name: "Install",
+      name: t("install"),
       icon: <WorkflowIcon width={width} height={height} />,
       href: "/dashboard/settings",
     },
     {
       id: "community",
-      name: "Community",
+      name: t("community"),
       icon: <StoreIcon width={width} height={height} />,
       href: "/dashboard/support",
     },
     {
       id: "pro",
-      name: "Pro Users",
+      name: t("pro"),
       icon: <User2 width={width} height={height} />,
       href: "/dashboard/support",
     },
     {
       id: "pdf",
-      name: "PDF Report",
+      name: t("pdf"),
       icon: <File width={width} height={height} />,
       href: "/dashboard/support",
     },

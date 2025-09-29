@@ -4,7 +4,7 @@ import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import LanguageSelector from "../LanguageSelector";
+import LanguageSelector from "../LanguageSwitcher";
 import SearchBar from "../SearchBar";
 import { BellIcon } from "@heroicons/react/24/outline"; // Using Heroicons for clean icons
 
