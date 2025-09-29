@@ -4,8 +4,8 @@
 import React, { useState } from "react";
 import { Modal } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@reduxjs/toolkit/query";
-import { AppDispatch } from "@/redux/store";
+// import { RootState } from "@reduxjs/toolkit/query";
+import { RootState, AppDispatch } from "@/redux/store";
 import {
   openLoginModal,
   closeLoginModal,

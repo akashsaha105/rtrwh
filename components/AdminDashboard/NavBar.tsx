@@ -61,7 +61,7 @@ const Navbar: React.FC<DashboardHeaderProps> = ({
         </div>
 
         {/* Language Selector */}
-        <LanguageSelector language={language} setLanguage={setLanguage} />
+        {/* <LanguageSelector language={language} setLanguage={setLanguage} /> */}
 
         {/* Sign Out Button */}
         <button

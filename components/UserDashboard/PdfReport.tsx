@@ -1,14 +1,13 @@
 "use client";
 
 import React from "react";
-import html2pdf from 'html2pdf.js'
 
 const PDFReport = () => {
   const handleClick = async () => {
     // Import html2pdf.js dynamically inside the handler
     const html2pdf = (await import("html2pdf.js")).default;
 
-    const element = document.querySelector('#report');
+    const element = document.querySelector('#report') as HTMLElement | null;
     if (!element) return;
 
     html2pdf(element, {

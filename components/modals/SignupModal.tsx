@@ -4,8 +4,7 @@
 import React, { FormEvent, useState } from "react";
 import { Modal } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@reduxjs/toolkit/query";
-import { AppDispatch } from "@/redux/store";
+import { RootState, AppDispatch } from "@/redux/store";
 import {
   openSignupModal,
   closeSignupModal,
