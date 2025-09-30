@@ -7,6 +7,7 @@ import Why from '@/components/Why'
 import Testimonials from '@/components/Testimonial'
 import Footer from '@/components/Footer'
 import { Locale } from '@/i18n/routing'
+import ChatWidget from '@/components/ChatWidget'
 
 
 // import en from '@/locales/en.json'
@@ -53,7 +54,7 @@ export default function Page({ params }: { params: { lang: string } }) {
       {/* Footer */}
       <Footer />
 
-    
+      <ChatWidget />
     </main>
   )
 }

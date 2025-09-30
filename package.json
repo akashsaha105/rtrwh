@@ -15,6 +15,7 @@
     "@mui/material": "^7.3.2",
     "@react-pdf/renderer": "^4.3.1",
     "@reduxjs/toolkit": "^2.9.0",
+    "ai": "^5.0.59",
     "axios": "^1.12.2",
     "chart.js": "^4.5.0",
     "dgram": "^1.0.1",
@@ -28,6 +29,7 @@
     "net": "^1.0.2",
     "next": "15.5.4",
     "next-intl": "^4.3.9",
+    "openai": "^5.23.2",
     "puppeteer": "^24.22.3",
     "puppeteer-core": "^24.22.3",
     "react": "19.1.0",
@@ -37,7 +39,8 @@
     "react-tsparticles": "^2.12.2",
     "recharts": "^3.2.1",
     "tls": "^0.0.1",
-    "tsparticles-slim": "^2.12.0"
+    "tsparticles-slim": "^2.12.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

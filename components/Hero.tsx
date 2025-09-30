@@ -1,29 +1,30 @@
-'use client'
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Droplets, Home, Zap, Camera, Calculator, ChevronDown, ChevronUp } from 'lucide-react'
+"use client";
+// import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Droplets,
+  Zap,
+} from "lucide-react";
 
-import Demo from '@/components/Demo'
-
-
-
+import Demo from "@/components/Demo";
+import { AppDispatch } from "@/redux/store";
+import { useDispatch } from "react-redux";
+import { openLoginModal } from "@/redux/slices/modalSlice";
 
 function HandleLearnMore() {
-  window.location.href = 'https://cwas.org.in/resources/file_manager/module_3-3_1_rwh_guidelines.pdf';
+  window.location.href =
+    "https://cwas.org.in/resources/file_manager/module_3-3_1_rwh_guidelines.pdf";
 }
 
 export default function Hero() {
+  // const [isExpanded, setIsExpanded] = useState(false);
+  const dispatch: AppDispatch = useDispatch()
 
-    const [isExpanded, setIsExpanded] = useState(false);
   return (
-    <section id="home" className="relative overflow-hidden min-h-screen flex items-center 10">
-      {/* Background Effects */}
-      {/* <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#0077b6] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-[#8251b9] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-6000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-[#48bb78] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-5000"></div>
-      </div> */}
-
+    <section
+      id="home"
+      className="relative overflow-hidden min-h-screen flex items-center 10"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto px-6">
         {/* Left Content */}
         <div className="space-y-8">
@@ -51,14 +52,13 @@ export default function Hero() {
                 Rainwater Harvesting
               </span>
               <br />
-              <span className="text-white">
-                Potential Instantly
-              </span>
+              <span className="text-white">Potential Instantly</span>
             </h1>
 
             <p className="text-xl text-gray-300 max-w-2xl leading-relaxed">
-              AI-powered, on-spot assessment of rainwater harvesting and artificial recharge structures. 
-              Get instant calculations for optimal tank sizes and recharge potential.
+              AI-powered, on-spot assessment of rainwater harvesting and
+              artificial recharge structures. Get instant calculations for
+              optimal tank sizes and recharge potential.
             </p>
           </motion.div>
 
@@ -68,15 +68,15 @@ export default function Hero() {
             transition={{ delay: 0.4, duration: 0.8 }}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <button 
-              className="px-8 py-4 bg-gradient-to-r from-[#0077b6] to-[#00b4d8] text-white rounded-xl shadow-glow hover:scale-105 transform transition font-semibold text-lg flex items-center justify-center space-x-2"
-              onClick={()=>window.location.href='Signup'}
+            <button
+              className="px-8 py-4 bg-gradient-to-r from-[#0077b6] to-[#00b4d8] text-white rounded-xl shadow-glow hover:scale-105 transform transition font-semibold text-lg flex items-center justify-center space-x-2 cursor-pointer"
+              onClick={() => dispatch(openLoginModal())}
             >
               <Zap className="w-5 h-5" />
               <span>Try Free Assessment</span>
             </button>
 
-            <button 
+            <button
               className="px-8 py-4 glass border border-gray-600 text-white rounded-xl hover:scale-105 transform transition font-semibold text-lg"
               onClick={HandleLearnMore}
             >
@@ -105,11 +105,11 @@ export default function Hero() {
             </div>
           </motion.div>
         </div>
-  
+
         {/* Right Image */}
-        
-      <Demo/>
+
+        <Demo />
       </div>
     </section>
-  )
+  );
 }

@@ -52,13 +52,13 @@ const Assessment: React.FC = () => {
 
   // User city
   const [city, setCity] = useState("");
-  
+
   // Dashboard Overview State
   const [area, setArea] = useState("");
   const [type, setType] = useState("");
   const [space, setSpace] = useState("");
   const [dwellers, setDwellers] = useState("");
-  
+
   // Rainfall
   const [rainfall, setRainfall] = useState(0); // in mm
 
@@ -228,7 +228,9 @@ const Assessment: React.FC = () => {
           </div>
 
           <div className="p-6 rounded-2xl bg-blue-900/20 backdrop-blur-md border border-blue-500/30 shadow-md">
-            <h3 className="text-lg font-semibold">{t("perPersonAvailability")}</h3>
+            <h3 className="text-lg font-semibold">
+              {t("perPersonAvailability")}
+            </h3>
             <p className="text-2xl font-bold mt-2 text-blue-400">
               {Math.round(perPersonAvail).toLocaleString()} Liters / Year
             </p>
@@ -377,9 +379,7 @@ const Assessment: React.FC = () => {
           <div className="p-6 rounded-2xl bg-blue-900/20 backdrop-blur-md border border-blue-500/30 shadow-md space-y-5">
             <h3 className="text-lg font-semibold">{t("requiredTankVolume")}</h3>
             <div className="flex flex-col gap-3">
-              <label htmlFor="">
-                {t("numberOfDays")}
-              </label>
+              <label htmlFor="">{t("numberOfDays")}</label>
               <input
                 type="text"
                 placeholder="e.g., 30 (days of water storage)"
@@ -424,16 +424,6 @@ const Assessment: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* ROI */}
-      <div className="bg-gradient-to-r from-sky-900/30 to-indigo-900/30 p-6 rounded-2xl border border-sky-400/30 backdrop-blur-md shadow-xl hover:scale-[1.01] transition">
-        <h4 className="text-xl font-semibold text-sky-300">
-          ⏳ {t("roiHeading")}
-        </h4>
-        <p className="text-lg mt-2 text-gray-200">
-          Your system will pay for itself in around{" "}
-          <span className="text-sky-400 font-bold">2 years</span>.
-        </p>
-      </div>
 
       {/* Usage Breakdown Pie Chart */}
       <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -464,10 +454,10 @@ const Assessment: React.FC = () => {
 
         {/* Environmental Impact Card */}
         <div className="p-6 rounded-2xl bg-emerald-900/20 backdrop-blur-md border border-emerald-500/30 shadow-md">
-          <h3 className="text-lg font-semibold mb-4">{t("environmentalImpact")}</h3>
-          <p className="text-gray-200 mb-2">
-            {t("impactDescription")}:
-          </p>
+          <h3 className="text-lg font-semibold mb-4">
+            {t("environmentalImpact")}
+          </h3>
+          <p className="text-gray-200 mb-2">{t("impactDescription")}:</p>
           <ul className="space-y-2 text-emerald-300 font-semibold">
             <li>🌍 Reduce 30% dependency on groundwater</li>
             <li>💧 Save 15,000 Liters yearly</li>
@@ -476,6 +466,74 @@ const Assessment: React.FC = () => {
           </ul>
         </div>
       </div>
+      {/* Cost Estimation & Cost-Benefit Analysis */}
+      <div className="mt-12 mb-12">
+        <h4 className="text-2xl font-semibold text-amber-400 mb-6 border-b border-amber-400/30 pb-2">
+          Cost Estimation & Benefits
+        </h4>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Installation & Maintenance Cost */}
+          <div className="bg-gradient-to-br from-amber-900/30 to-amber-700/20 p-6 rounded-2xl border border-amber-400/30 shadow-lg">
+            <h5 className="text-xl font-bold text-amber-300 mb-4">
+              Estimated Costs
+            </h5>
+            <ul className="space-y-3 text-sm text-white/80">
+              <li className="flex justify-between">
+                <span>Installation Cost:</span>
+                <span className="font-semibold text-white">₹ 1,20,000</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Annual Maintenance:</span>
+                <span className="font-semibold text-white">₹ 5,000</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Expected Lifespan:</span>
+                <span className="font-semibold text-white">15+ Years</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Cost-Benefit Analysis */}
+          <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-700/20 p-6 rounded-2xl border border-emerald-400/30 shadow-lg">
+            <h5 className="text-xl font-bold text-emerald-300 mb-4">
+              Benefits & Savings
+            </h5>
+            <ul className="space-y-3 text-sm text-white/80">
+              <li className="flex justify-between">
+                <span>Annual Water Bill Savings:</span>
+                <span className="font-semibold text-white">₹ 25,000</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Subsidy Eligible:</span>
+                <span className="font-semibold text-white">
+                  Yes (Up to 30%)
+                </span>
+              </li>
+              <li className="flex justify-between">
+                <span>Payback Period:</span>
+                <span className="font-semibold text-white">~ 4.5 Years</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Return on Investment (10 Yrs):</span>
+                <span className="font-semibold text-white">3.2x</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* ROI */}
+      <div className="bg-gradient-to-r from-sky-900/30 to-indigo-900/30 p-6 rounded-2xl border border-sky-400/30 backdrop-blur-md shadow-xl hover:scale-[1.01] transition">
+        <h4 className="text-xl font-semibold text-sky-300">
+          ⏳ {t("roiHeading")}
+        </h4>
+        <p className="text-lg mt-2 text-gray-200">
+          Your system will pay for itself in around{" "}
+          <span className="text-sky-400 font-bold">2 years</span>.
+        </p>
+      </div>
+
       {/* Benefits */}
       <div>
         <h4 className="text-xl font-semibold text-purple-300 mt-10 my-4">

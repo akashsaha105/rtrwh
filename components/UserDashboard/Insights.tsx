@@ -237,65 +237,6 @@ const Insights = () => {
             </div>
           </div>
 
-          {/* Cost Estimation & Cost-Benefit Analysis */}
-          <div className="mb-12">
-            <h4 className="text-2xl font-semibold text-amber-400 mb-6 border-b border-amber-400/30 pb-2">
-              Cost Estimation & Benefits
-            </h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Installation & Maintenance Cost */}
-              <div className="bg-gradient-to-br from-amber-900/30 to-amber-700/20 p-6 rounded-2xl border border-amber-400/30 shadow-lg">
-                <h5 className="text-xl font-bold text-amber-300 mb-4">
-                  Estimated Costs
-                </h5>
-                <ul className="space-y-3 text-sm text-white/80">
-                  <li className="flex justify-between">
-                    <span>Installation Cost:</span>
-                    <span className="font-semibold text-white">₹ 1,20,000</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>Annual Maintenance:</span>
-                    <span className="font-semibold text-white">₹ 5,000</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>Expected Lifespan:</span>
-                    <span className="font-semibold text-white">15+ Years</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Cost-Benefit Analysis */}
-              <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-700/20 p-6 rounded-2xl border border-emerald-400/30 shadow-lg">
-                <h5 className="text-xl font-bold text-emerald-300 mb-4">
-                  Benefits & Savings
-                </h5>
-                <ul className="space-y-3 text-sm text-white/80">
-                  <li className="flex justify-between">
-                    <span>Annual Water Bill Savings:</span>
-                    <span className="font-semibold text-white">₹ 25,000</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>Subsidy Eligible:</span>
-                    <span className="font-semibold text-white">
-                      Yes (Up to 30%)
-                    </span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>Payback Period:</span>
-                    <span className="font-semibold text-white">
-                      ~ 4.5 Years
-                    </span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>Return on Investment (10 Yrs):</span>
-                    <span className="font-semibold text-white">3.2x</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
           {/* Predictions & Recommendations */}
           <div className="bg-white/5 p-6 rounded-2xl shadow-lg">
             <h4 className="text-xl font-semibold text-emerald-300 mb-4">
