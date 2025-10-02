@@ -39,7 +39,7 @@ async function callGemini(model: string, contents: any, apiKey: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+    const apiKey = "AIzaSyB1MuwvayM1gBvr6m0MqmIEP_uGjqHs9zk";
     if (!apiKey) return NextResponse.json({ error: 'Missing GOOGLE_GEMINI_API_KEY' }, { status: 500 });
 
     const body = (await req.json()) as ChatReqBody;
