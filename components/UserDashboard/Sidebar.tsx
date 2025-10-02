@@ -18,8 +18,6 @@ interface DashboardSideBarProps {
 }
 
 const SideBar: React.FC<DashboardSideBarProps> = ({
-  username,
-  email,
   activeItem,
   setActiveItem,
 }) => {
@@ -139,7 +137,7 @@ const SideBar: React.FC<DashboardSideBarProps> = ({
 
       {/* User Info */}
       <div className="mt-auto" onClick={() => setActiveItem("profile")}>
-        <UserInfo displayName={username} email={email} collapsed={collapsed}/>
+        <UserInfo collapsed={collapsed}/>
       </div>
     </aside>
   );
