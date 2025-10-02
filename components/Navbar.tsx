@@ -86,18 +86,31 @@ const Navbar = ({ t, lang = "en" }: NavbarProps) => {
   }, [open]);
 
 useEffect(() => {
-  onAuthStateChanged(auth, async (currentUser) => {
-    if (currentUser) {
-      if (currentUser.email != "admin123@admin.com") {
-        if (currentUser.emailVerified) setUser(currentUser)
-        else setUser(null)
-      } else {
-        setUser(currentUser)
-      }
+  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    if (!currentUser) {
+      setUser(null);
+      return;
     }
-    else setUser(null)
-  })
-})
+
+    // If admin
+    if (currentUser.email === "admin123@admin.com") {
+      setUser(currentUser);
+    }
+    // If Google login → skip emailVerified check
+    else if (currentUser.providerData[0]?.providerId === "google.com") {
+      setUser(currentUser);
+    }
+    // If email/password login → require verification
+    else if (currentUser.emailVerified) {
+      setUser(currentUser);
+    } else {
+      setUser(null);
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
+
 
   const handleSignOut = useCallback(() => {
     setLoading(true);

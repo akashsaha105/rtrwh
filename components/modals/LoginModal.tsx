@@ -13,15 +13,13 @@ import {
   closeSignupModal,
 } from "@/redux/slices/modalSlice";
 import { EyeIcon, EyeSlashIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, firestore } from "@/firebase";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth, firestore, googleProvider } from "@/firebase";
 import { motion } from "framer-motion";
 import Link from "next/link";
-// import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { runTransaction } from "firebase/firestore";
-import LoadingPage from "../Loading";
 import { useRouter } from "next/navigation";
 
 const LoginModal = () => {
@@ -35,10 +33,10 @@ const LoginModal = () => {
   const [loginPassword, setLoginPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [windowLoad, setWindowLoad] = useState(false);
+  // const [windowLoad, setWindowLoad] = useState(false);
 
   const router = useRouter();
-  
+
   // Generates a custom UID like rtrw-1, rtrw-2 safely
   async function generateCustomUID(): Promise<string> {
     const counterRef = doc(firestore, "counters", "userCounter");
@@ -95,38 +93,38 @@ const LoginModal = () => {
 
         if (!userDoc.exists()) {
           await setDoc(userRef, {
-            fullName: '',
-            phoneNumber: '',
+            fullName: "",
+            phoneNumber: "",
             geopoint: [],
             email: user.email,
             username: user.displayName,
             uid: customUID,
+            photoURL: user.photoURL || "",
             createdAt: new Date(),
             location: {
-              state: '',
-              city: '',
-              address: ''
+              state: "",
+              city: "",
+              address: "",
             },
             rooftop: {
-              area: '',
-              type: '',
-              dwellers: '',
-              space: ''
+              area: "",
+              type: "",
+              dwellers: "",
+              space: "",
             },
-            status: false
+            status: "Inactive",
           });
         }
 
-        dispatch(closeLoginModal())
-        dispatch(closeSignupModal())
+        dispatch(closeLoginModal());
+        dispatch(closeSignupModal());
 
         // setWindowLoad(true)
         // window.location.reload()
-        
+
         // Optional: navigate somewhere after login
         router.push("/en/dashboard"); // example
       }
-
     } catch (error) {
       const err = error as FirebaseError;
 
@@ -146,7 +144,70 @@ const LoginModal = () => {
     }
   };
 
-  if (windowLoad) return <LoadingPage />
+  // ---- inside LoginModal ----
+
+  // Handle Google login
+  const handleGoogleLogin = async () => {
+    if (loading) return; // prevent multiple clicks
+    setLoading(true);
+
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Check if user doc exists
+      const userRef = doc(firestore, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        const customUID = await generateCustomUID();
+
+        await setDoc(userRef, {
+          fullName: "",
+          phoneNumber: "",
+          geopoint: [],
+          email: user.email,
+          username: user.displayName,
+          uid: customUID,
+          createdAt: new Date(),
+          location: {
+            state: "",
+            city: "",
+            address: "",
+          },
+          rooftop: {
+            area: "",
+            type: "",
+            dwellers: "",
+            space: "",
+          },
+          status: "Inactive",
+        });
+      }
+
+      dispatch(closeLoginModal());
+      dispatch(closeSignupModal());
+      router.push("/en/dashboard");
+    } catch (err) {
+      const error = err as FirebaseError;
+      // console.error("Google login failed:", error.message);
+
+      switch (error.code) {
+        case "auth/popup-closed-by-user":
+          alert("You closed the popup before signing in");
+          break;
+        case "auth/cancelled-popup-request":
+          alert("Another login attempt is already in progress");
+          break;
+        default:
+          alert("Google login failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // if (windowLoad) return <LoadingPage />
 
   return (
     <div>
@@ -265,7 +326,10 @@ const LoginModal = () => {
             </div>
 
             {/* Social Login */}
-            <button className="w-full flex items-center justify-center gap-2 border border-gray-700 bg-gray-800/80 text-gray-300 py-2 rounded-lg hover:bg-gray-700 transition">
+            <button
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-2 border border-gray-700 bg-gray-800/80 text-gray-300 py-2 rounded-lg hover:bg-gray-700 transition"
+            >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
                 alt="Google"

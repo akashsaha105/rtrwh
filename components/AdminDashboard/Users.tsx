@@ -9,11 +9,10 @@ interface User {
   fullName: string;
   email: string;
   phoneNumber: string;
-  status: "Active" | "Blocked" | "Pending";
-  // joined: string;
+  status: "Active" | "Inactive" | "Blocked" | "Pending";
   location: {
     address: string;
-  }
+  };
   proUser: true; // replaces score
 }
 
@@ -43,19 +42,19 @@ const Users = () => {
   }, []);
 
   // 🔎 Filtering logic
-const filteredUsers = users.filter((user) => {
-  const name = user.fullName || "";
-  const email = user.email || "";
+  const filteredUsers = users.filter((user) => {
+    const name = user.fullName || "";
+    const email = user.email || "";
 
-  const matchesSearch =
-    name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      email.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const matchesStatus =
-    statusFilter === "All" || user.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "All" || user.status === statusFilter;
 
-  return matchesSearch && matchesStatus;
-});
+    return matchesSearch && matchesStatus;
+  });
 
   // 🌟 Pro Users
   const proUsers = users.filter((user) => user.proUser).slice(0, 3);
@@ -80,7 +79,9 @@ const filteredUsers = users.filter((user) => {
                 <h5 className="font-bold text-white">{user.fullName}</h5>
                 <p className="text-gray-300 text-sm">{user.email}</p>
                 <p className="text-gray-400 text-sm">📱 {user.phoneNumber}</p>
-                <p className="text-gray-400 text-sm">🏠 {user.location.address}</p>
+                <p className="text-gray-400 text-sm">
+                  🏠 {user.location.address}
+                </p>
                 <p className="mt-2 text-green-300 font-semibold">⭐ Pro User</p>
               </div>
             ))
@@ -104,23 +105,19 @@ const filteredUsers = users.filter((user) => {
 
         {/* Status Filter */}
         <div className="flex items-center gap-3">
-          <label
-            htmlFor="statusFilter"
-            className="text-sm font-medium text-gray-300"
-          >
-            Status:
-          </label>
           <div className="relative">
             <select
               id="statusFilter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="appearance-none px-4 py-2 pr-10 rounded-lg bg-gray-800 text-gray-200 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 text-sm"
+              className="appearance-none px-4 py-2 pr-10 rounded-lg bg-gray-800 text-gray-200 border border-gray-700 
+                 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 text-sm"
             >
               <option value="All">All Status</option>
               <option value="Active">Active</option>
-              <option value="Blocked">Blocked</option>
+              <option value="Inactive">Inactive</option>
               <option value="Pending">Pending</option>
+              <option value="Blocked">Blocked</option>
             </select>
             <span className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
               ▼
@@ -139,7 +136,6 @@ const filteredUsers = users.filter((user) => {
               <th className="px-4 py-3">📱 Phone Number</th>
               <th className="px-4 py-3">🏠 Address</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Joined</th>
               <th className="px-4 py-3 text-center">Pro</th>
               <th className="px-4 py-3 text-center">Actions</th>
             </tr>

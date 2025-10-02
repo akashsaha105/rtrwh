@@ -14,11 +14,13 @@ import { EyeIcon, EyeSlashIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  signInWithPopup,
   updateProfile,
 } from "firebase/auth";
 import { motion } from "framer-motion";
 import { auth } from "@/firebase";
 import { FirebaseError } from "firebase/app";
+import { googleProvider } from "@/firebase";
 
 function getUsernameFromEmail(email: string | null): string {
   if (!email) return "";
@@ -55,23 +57,21 @@ const SignupModal = () => {
 
       // After account is created, update the name of the profile
       await updateProfile(user, {
-        displayName: getUsernameFromEmail(email)
-      })
+        displayName: getUsernameFromEmail(email),
+      });
 
-      // Send email verification immediately  
+      // Send email verification immediately
       await sendEmailVerification(user);
       setLoading(true);
       alert("Email verification is send to your account");
 
       // Close the signup modal if the account is created and email is sent.
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      dispatch(closeSignupModal())
-
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      dispatch(closeSignupModal());
     } catch (error) {
-
-      const err = error as FirebaseError
+      const err = error as FirebaseError;
 
       if (err.code === "auth/email-already-in-use") {
         alert("This email is already registered. Please log in instead.");
@@ -83,7 +83,7 @@ const SignupModal = () => {
         alert(err.message);
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -209,7 +209,10 @@ const SignupModal = () => {
             </div>
 
             {/* Social Signup */}
-            <button className="w-full flex items-center justify-center gap-2 border border-gray-700 bg-gray-800/80 text-gray-300 py-2 rounded-lg hover:bg-gray-700 transition">
+            <button
+              onClick={async () => await signInWithPopup(auth, googleProvider)}
+              className="w-full flex items-center justify-center gap-2 border border-gray-700 bg-gray-800/80 text-gray-300 py-2 rounded-lg hover:bg-gray-700 transition"
+            >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
                 alt="Google"

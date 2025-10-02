@@ -1,57 +1,85 @@
 "use client";
 
-import { onAuthStateChanged } from "firebase/auth/cordova";
+import { onAuthStateChanged, User } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/firebase";
-import { UserCircle2 } from "lucide-react";
+// import Image from "next/image";
 
 interface UserInfoProps {
-  displayName?: string | null | undefined;
-  email?: string | null | undefined;
-  collapsed: boolean
+  collapsed: boolean;
 }
 
-const UserInfo: React.FC<UserInfoProps> = ({ displayName, email, collapsed }) => {
-  // const [user, setUser] = useState<User | null> (null)
+const UserInfo: React.FC<UserInfoProps> = ({ collapsed }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [photo, setPhoto] = useState("");
   const router = useRouter();
-  const [username, setUsername] = useState(displayName)
 
-  // Handle auth state check
+  // Handle auth state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         router.push("/");
         console.log("User is not authenticated");
+        return;
       }
-      setUsername(displayName)
+
+      else {
+        const isGoogle = currentUser.providerData.some(
+          (p) => p.providerId === "google.com"
+        );
+  
+        if (isGoogle || currentUser.emailVerified) {
+          setUser(currentUser);
+          if (currentUser.photoURL )setPhoto(currentUser.photoURL)
+        } else {
+          setUser(null);
+        }
+      }
     });
 
     return () => unsubscribe();
-  }, [router, displayName]);
+  }, [router]);
 
-  // if (loading) return <LoadingPage />;
-
+  console.log(user)
+  console.log(photo)
+  
   return (
     <div
-      // onClick={() => router.push("/dashboard/profile")}
       className={`w-full relative rounded-xl px-4 py-3 cursor-pointer
-                 ${!collapsed ? "bg-white/5 backdrop-blur-md border border-white/10 transition-all duration-300 ease-in-out hover:bg-sky-500/20 " : "right-0 p-10 ml-[-11] pe-13"} hover:bg-sky-500/20 hover:scale-[1.02]`}
+        ${
+          !collapsed
+            ? "bg-white/5 backdrop-blur-md border border-white/10 transition-all duration-300 ease-in-out hover:bg-sky-500/20"
+            : "right-0 p-10 ml-[-11] pe-13"
+        } hover:bg-sky-500/20 hover:scale-[1.02]`}
     >
-      {/* Inner flex row */}
       <div className="flex items-center gap-3">
         {/* Avatar */}
-        <div className="relative shrink-0">
-          <UserCircle2 className="w-10 h-10 text-sky-300 transition-transform duration-300 group-hover:scale-110" />
+        <div className="relative shrink-0 w-10 h-10">
+          {photo != "" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photo}
+              alt="User Avatar"
+              width={40}
+              height={40}
+              className="rounded-full object-cover transition-transform duration-300 hover:scale-110"
+               // ✅ allow external URLs without next.config.js
+            />
+          ) : (
+            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-sky-500 text-white font-semibold">
+              {user?.displayName?.[0]?.toUpperCase() || "G"}
+            </div>
+          )}
         </div>
 
         {/* User Details */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-white truncate">
-            {username || "Guest User"}
+            {user?.displayName || "Guest User"}
           </p>
           <p className="text-xs text-sky-200/80 truncate">
-            {email || "guest@example.com"}
+            {user?.email || "guest@example.com"}
           </p>
         </div>
       </div>
