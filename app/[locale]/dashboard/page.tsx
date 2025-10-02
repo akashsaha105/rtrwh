@@ -16,6 +16,7 @@ import Insights from "@/components/UserDashboard/Insights";
 import Community from "@/components/UserDashboard/Community";
 import InstallPage from "@/components/UserDashboard/Install";
 import ProDashboard from "@/components/UserDashboard/ProUser";
+import ChatWidget from "@/components/ChatWidget";
 
 const Page = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -26,10 +27,23 @@ const Page = () => {
   // Sidebar states
   const [activeItem, setActiveItem] = useState("assessment");
 
+  // Rooftop Data
+  interface RoofTopData {
+    rooftop: {
+      area: string;
+      type: string;
+      dwellers: string;
+      space: string;
+    };
+  }
+
   // Auth check + Firestore rooftop check
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser || currentUser.email == "admin123@admin.com") {
+      if (
+        (!currentUser || currentUser.email == "admin123@admin.com") &&
+        !currentUser?.emailVerified
+      ) {
         router.push("/");
         console.log("User is not authenticated");
         return;
@@ -39,8 +53,17 @@ const Page = () => {
       try {
         const userDoc = await getDoc(doc(firestore, "users", currentUser.uid));
         if (userDoc.exists()) {
-          const data = userDoc.data();
-          setHasRooftop(!!data?.rooftop);
+          const data = userDoc.data() as RoofTopData;
+          if (
+            data.rooftop.area !== "" &&
+            data.rooftop.dwellers !== "" &&
+            data.rooftop.space !== "" &&
+            data.rooftop.type !== ""
+          ) {
+            setHasRooftop(true);
+          } else {
+            setHasRooftop(false);
+          }
         } else {
           setHasRooftop(false);
         }
@@ -81,7 +104,7 @@ const Page = () => {
           {/* Assessment */}
           <div className={activeItem === "assessment" ? "block" : "hidden"}>
             {!hasRooftop ? (
-              <NoRoofTop activeItem="profile" setActiveItem={setActiveItem} />
+              <NoRoofTop setActiveItem={setActiveItem} />
             ) : (
               <Assessment />
             )}
@@ -89,29 +112,47 @@ const Page = () => {
 
           {/* Insights */}
           <div className={activeItem === "insights" ? "block" : "hidden"}>
-            <Insights />
+            {!hasRooftop ? (
+              <NoRoofTop setActiveItem={setActiveItem} />
+            ) : (
+              <Insights />
+            )}
           </div>
 
           {/* Installation */}
           <div className={activeItem === "install" ? "block" : "hidden"}>
-            <InstallPage />
+            {!hasRooftop ? (
+              <NoRoofTop setActiveItem={setActiveItem} />
+            ) : (
+              <InstallPage />
+            )}
           </div>
 
           {/* Community */}
-          <div className={`${activeItem === "community" ? "block" : "hidden"}`}>
-            <Community />
+          <div className={activeItem === "community" ? "block" : "hidden"}>
+            {!hasRooftop ? (
+              <NoRoofTop setActiveItem={setActiveItem} />
+            ) : (
+              <Community />
+            )}
           </div>
 
           {/* Pro Users */}
           <div className={activeItem === "pro" ? "block" : "hidden"}>
-            <ProDashboard />
+            {!hasRooftop ? (
+              <NoRoofTop setActiveItem={setActiveItem} />
+            ) : (
+              <ProDashboard />
+            )}
           </div>
 
           {/* Pdf Report */}
           <div className={activeItem === "pdf" ? "block" : "hidden"}>
-            {/* <PDFViewer className="w-100 h-100">
-            </PDFViewer> */}
+            {!hasRooftop ? (
+              <NoRoofTop setActiveItem={setActiveItem} />
+            ) : (
               <PDFReport />
+            )}
           </div>
 
           {/* Profile */}
@@ -120,6 +161,8 @@ const Page = () => {
           </div>
         </main>
       </div>
+
+      <ChatWidget />
     </div>
   );
 };

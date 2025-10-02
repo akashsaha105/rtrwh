@@ -1,12 +1,10 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 interface NoRoofTopProps {
-  activeItem: string;
   setActiveItem: (tab: string) => void;
 }
 
-const NoRoofTop: React.FC<NoRoofTopProps> = ({ activeItem, setActiveItem }) => {
-  setActiveItem(activeItem);
+const NoRoofTop: React.FC<NoRoofTopProps> = ({ setActiveItem }) => {
   return (
     <div className="flex items-center justify-center h-full bg-gradient-to-br text-white">
       <div className="bg-white/10 p-10 rounded-xl text-center">

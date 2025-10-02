@@ -10,12 +10,18 @@ import {
   openLoginModal,
   closeLoginModal,
   openSignupModal,
+  closeSignupModal,
 } from "@/redux/slices/modalSlice";
 import { EyeIcon, EyeSlashIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/firebase";
+import { auth, firestore } from "@/firebase";
 import { motion } from "framer-motion";
 import Link from "next/link";
+// import { useRouter } from "next/navigation";
+import { FirebaseError } from "firebase/app";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { runTransaction } from "firebase/firestore";
+import LoadingPage from "../Loading";
 import { useRouter } from "next/navigation";
 
 const LoginModal = () => {
@@ -29,23 +35,118 @@ const LoginModal = () => {
   const [loginPassword, setLoginPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const router = useRouter()
+  const [windowLoad, setWindowLoad] = useState(false);
 
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    try {
-      const loginUser = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-      if (loginUser) {
-        router.push('/en/dashboard')
+  const router = useRouter();
+  
+  // Generates a custom UID like rtrw-1, rtrw-2 safely
+  async function generateCustomUID(): Promise<string> {
+    const counterRef = doc(firestore, "counters", "userCounter");
+
+    const customUID = await runTransaction(firestore, async (transaction) => {
+      const counterSnap = await transaction.get(counterRef);
+      let nextNumber = 1;
+
+      if (counterSnap.exists()) {
+        nextNumber = (counterSnap.data().lastNumber || 0) + 1;
       }
 
-      dispatch(closeLoginModal());
+      transaction.set(counterRef, { lastNumber: nextNumber });
+      return `USR${nextNumber}`;
+    });
+
+    return customUID;
+  }
+
+  // Handle login functionalities
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoading(true); // start loading immediately
+
+    try {
+      const { user } = await signInWithEmailAndPassword(
+        auth,
+        loginEmail,
+        loginPassword
+      );
+
+      // Check if admin
+      if (user.email === "admin123@admin.com") {
+        const adminRef = doc(firestore, "admin", user.uid);
+        const adminDoc = await getDoc(adminRef);
+        if (!adminDoc.exists()) {
+          await setDoc(adminRef, {
+            email: user.email,
+            username: "admin",
+          });
+        }
+      } else {
+        // Check email verification
+        if (!user.emailVerified) {
+          alert("Your email account is not verified");
+          return;
+        }
+
+        // Email verified → check/create Firestore doc
+        const userRef = doc(firestore, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+
+        const customUID = await generateCustomUID();
+
+        if (!userDoc.exists()) {
+          await setDoc(userRef, {
+            fullName: '',
+            phoneNumber: '',
+            geopoint: [],
+            email: user.email,
+            username: user.displayName,
+            uid: customUID,
+            createdAt: new Date(),
+            location: {
+              state: '',
+              city: '',
+              address: ''
+            },
+            rooftop: {
+              area: '',
+              type: '',
+              dwellers: '',
+              space: ''
+            },
+            status: false
+          });
+        }
+
+        dispatch(closeLoginModal())
+        dispatch(closeSignupModal())
+
+        // setWindowLoad(true)
+        // window.location.reload()
+        
+        // Optional: navigate somewhere after login
+        router.push("/en/dashboard"); // example
+      }
+
     } catch (error) {
-      console.error(error);
+      const err = error as FirebaseError;
+
+      // Handle Firebase error codes
+      switch (err.code) {
+        case "auth/invalid-email":
+        case "auth/user-not-found":
+        case "auth/wrong-password":
+          alert("Email or password is invalid");
+          break;
+        default:
+          alert("Invalid Credentials");
+      }
+    } finally {
+      // ✅ Stop loading in all cases (success, error, early return)
       setLoading(false);
     }
   };
+
+  if (windowLoad) return <LoadingPage />
 
   return (
     <div>

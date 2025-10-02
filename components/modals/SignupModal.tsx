@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 /* eslint-disable @next/next/no-img-element */
 import React, { FormEvent, useState } from "react";
@@ -16,9 +16,9 @@ import {
   sendEmailVerification,
   updateProfile,
 } from "firebase/auth";
-import { auth } from "@/firebase";
 import { motion } from "framer-motion";
-import LoadingPage from "../Loading";
+import { auth } from "@/firebase";
+import { FirebaseError } from "firebase/app";
 
 function getUsernameFromEmail(email: string | null): string {
   if (!email) return "";
@@ -38,50 +38,56 @@ const SignupModal = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async (event: FormEvent) => {
     event.preventDefault();
-    if (password !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
     setLoading(true);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
+      // Creating account using email and password
+      const { user } = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
 
-      const user = userCredential.user;
-
+      // After account is created, update the name of the profile
       await updateProfile(user, {
-        displayName: getUsernameFromEmail(user.email),
-      });
+        displayName: getUsernameFromEmail(email)
+      })
 
+      // Send email verification immediately  
       await sendEmailVerification(user);
+      setLoading(true);
+      alert("Email verification is send to your account");
 
-      alert("Registration successful! Please check your email for verification");
+      // Close the signup modal if the account is created and email is sent.
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      dispatch(closeSignupModal())
 
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-
-      dispatch(closeSignupModal());
-      dispatch(openLoginModal()); // redirect to login after signup
     } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
+
+      const err = error as FirebaseError
+
+      if (err.code === "auth/email-already-in-use") {
+        alert("This email is already registered. Please log in instead.");
+      } else if (err.code === "auth/invalid-email") {
+        alert("Invalid email format.");
+      } else if (err.code === "auth/weak-password") {
+        alert("Password should be at least 6 characters.");
       } else {
-        alert("An unknown error occurred");
+        alert(err.message);
       }
-      setLoading(false);
+    } finally {
+      setLoading(false)
     }
   };
 
-  if (loading) return <LoadingPage />;
+  // if (loading) return <LoadingPage />;
 
   return (
     <div>

@@ -23,7 +23,7 @@ interface RoofTopData {
 }
 
 async function getCoordinates(cityName: string) {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+   
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${cityName}`
@@ -71,15 +71,17 @@ const Assessment: React.FC = () => {
         const unsubscribeSnapshot = onSnapshot(docRef, (snapshot) => {
           if (snapshot.exists()) {
             try {
-              const data = snapshot.data();
-              const getCity = data as City;
-              const getRoofTopData = data as RoofTopData;
+              const data = snapshot.data(); 
 
-              setCity(getCity?.location?.city || "");
-              setArea(getRoofTopData?.rooftop?.area || "");
-              setType(getRoofTopData?.rooftop?.type || "");
-              setSpace(getRoofTopData?.rooftop?.space || "");
-              setDwellers(getRoofTopData?.rooftop?.dwellers || "");
+              const getRoofTopData = data as RoofTopData;
+              if (getRoofTopData.rooftop.area != "") setArea(getRoofTopData.rooftop.area)
+              if (getRoofTopData.rooftop.type != "") setType(getRoofTopData.rooftop.type);
+              if (getRoofTopData.rooftop.space != "") setSpace(getRoofTopData.rooftop.space);
+              if (getRoofTopData.rooftop.dwellers != "") setDwellers(getRoofTopData.rooftop.dwellers);
+              
+              const getCity = data as City;
+              if (getCity.location.city != "") setCity(getCity.location.city);
+              
             } catch (e) {
               console.log(e);
             }

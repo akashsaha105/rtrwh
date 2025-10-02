@@ -3,23 +3,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Menu, X, Globe, Droplets, UserCircleIcon } from "lucide-react";
+import { Menu, X, Droplets, UserCircleIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import LoginModal from "./modals/LoginModal";
-import {
-  openLoginModal,
-  closeLoginModal,
-  closeSignupModal,
-} from "@/redux/slices/modalSlice";
-import { AppDispatch } from "@/redux/store";
+import { closeLoginModal, closeSignupModal } from "@/redux/slices/modalSlice";
+// import { AppDispatch } from "@/redux/store";
 import SignupModal from "./modals/SignupModal";
 import LanguageSelector from "./LanguageSwitcher";
-import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { auth, firestore } from "@/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth } from "@/firebase";
 import { useDispatch } from "react-redux";
-import LoadingPage from "./Loading";
+// import LoadingPage from "./Loading";
 import DashboardButton from "./Button";
 
 interface NavbarProps {
@@ -67,8 +61,10 @@ const Navbar = ({ t, lang = "en" }: NavbarProps) => {
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true); // start as loading until auth resolved
-  const router = useRouter();
   const dispatch = useDispatch();
+
+  console.log(loading)
+
 
   // Dropdown Menu state and outside-click handling
   const [open, setOpen] = useState(false);
@@ -89,84 +85,33 @@ const Navbar = ({ t, lang = "en" }: NavbarProps) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  useEffect(() => {
-    // Listen for auth changes
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      try {
-        if (currentUser) {
-          // reload to get latest claims/properties (safe to call)
-          if (typeof currentUser.reload === "function") {
-            try {
-              await currentUser.reload();
-            } catch (err) {
-              // ignore reload failure; still use currentUser
-              console.warn("User reload failed:", err);
-            }
-          }
-
-          setUser(currentUser);
-
-          // Ensure a users doc exists (non-blocking)
-          try {
-            const userDocRef = doc(firestore, "users", currentUser.uid);
-            const snapshot = await getDoc(userDocRef);
-            if (!snapshot.exists()) {
-              // If you stored registrationData earlier in localStorage, read it only if mounted
-              let username = "";
-              let password = "";
-              if (typeof window !== "undefined") {
-                const registrationData =
-                  localStorage.getItem("registrationData");
-                if (registrationData) {
-                  try {
-                    const parsed = JSON.parse(registrationData);
-                    username = parsed.username || "";
-                    password = parsed.password || "";
-                  } catch {
-                    // ignore parse error
-                  }
-                }
-              }
-              await setDoc(userDocRef, {
-                username,
-                email: currentUser.email || "",
-                password,
-              });
-              if (typeof window !== "undefined") {
-                localStorage.removeItem("registrationData");
-              }
-            }
-          } catch (err) {
-            console.warn("Error ensuring user doc:", err);
-          }
-        } else {
-          setUser(null);
-        }
-      } finally {
-        setLoading(false);
+useEffect(() => {
+  onAuthStateChanged(auth, async (currentUser) => {
+    if (currentUser) {
+      if (currentUser.email != "admin123@admin.com") {
+        if (currentUser.emailVerified) setUser(currentUser)
+        else setUser(null)
+      } else {
+        setUser(currentUser)
       }
-    });
-
-    return () => unsubscribe();
-  }, [router]);
+    }
+    else setUser(null)
+  })
+})
 
   const handleSignOut = useCallback(() => {
-    // Sign out and close modals
+    setLoading(true);
+    setOpen(false); // reset dropdown
     signOut(auth)
       .then(() => {
+        setUser(null);
         dispatch(closeLoginModal());
         dispatch(closeSignupModal());
       })
-      .catch((err) => {
-        console.error("Sign out error:", err);
-      })
-      .finally(() => {
-        // Small delay for UX; feel free to remove/set to 0
-        setTimeout(() => setLoading(false), 400);
-      });
+      .finally(() => setLoading(false));
   }, [dispatch]);
 
-  if (loading) return <LoadingPage />;
+  // if (loading) return <LoadingPage />;
   return (
     <nav className="fixed top-0 left-0 w-full z-50 glass shadow-glow  ">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
@@ -201,7 +146,11 @@ const Navbar = ({ t, lang = "en" }: NavbarProps) => {
             </motion.div>
           ))}
 
-          <LanguageSelector language={language} setLanguage={setLanguage} page=""/>
+          <LanguageSelector
+            language={language}
+            setLanguage={setLanguage}
+            page=""
+          />
 
           {user ? (
             <>
@@ -232,7 +181,7 @@ const Navbar = ({ t, lang = "en" }: NavbarProps) => {
 
                   {/* Name / Email */}
                   <span className="hidden md:block max-w-[150px] truncate font-medium">
-                    {user.displayName || user.email}
+                    {user.email == "admin123@admin.com" ? "admin" : user.displayName}
                   </span>
                 </div>
 
@@ -249,7 +198,7 @@ const Navbar = ({ t, lang = "en" }: NavbarProps) => {
                     {/* User Info Card Header */}
                     <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {user.displayName || "User"}
+                        {user.email == "admin123@admin.com" ? "admin" : user.displayName}
                       </p>
                       <p className="text-sm text-gray-500 truncate">
                         {user.email}
