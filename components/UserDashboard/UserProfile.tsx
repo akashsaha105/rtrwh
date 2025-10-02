@@ -1,10 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import profile from "../../public/assets/profile.jpg";
 import { MapPinIcon } from "@heroicons/react/16/solid";
-import { onAuthStateChanged, updateProfile } from "firebase/auth";
+import { onAuthStateChanged, updateProfile, User } from "firebase/auth";
 import { auth, firestore } from "@/firebase";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
@@ -83,8 +82,12 @@ const UserProfile = () => {
     rooftop: { area: "", type: "", dwellers: "", space: "" },
   });
 
+  const [user, setUser] = useState<User | null>(null);
+  const [photo, setPhoto] = useState("");
+
   const [formData, setFormData] = useState<FormData>(userProfile);
-  const [rooftopFormData, setRooftopFormData] = useState<RoofTopFormData>(userRoofTop);
+  const [rooftopFormData, setRooftopFormData] =
+    useState<RoofTopFormData>(userRoofTop);
 
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
@@ -95,7 +98,9 @@ const UserProfile = () => {
   const [rooftopSubmitted, setRooftopSubmitted] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     if (name === "state" || name === "city" || name === "address") {
@@ -209,43 +214,54 @@ const UserProfile = () => {
     const fetchUser = async () => {
       onAuthStateChanged(auth, async (currentUser) => {
         if (!currentUser) return;
-        const docRef = doc(firestore, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
+        else {
+          const isGoogle = currentUser.providerData.some(
+            (p) => p.providerId === "google.com"
+          );
 
-        if (docSnap.exists()) {
-          const userData = docSnap.data() as FormData & RoofTopFormData;
-          setUserProfile({
-            username: userData.username || "",
-            fullName: userData.fullName || "",
-            email: userData.email || "",
-            phoneNumber: userData.phoneNumber || "",
-            location: {
-              state: userData.location?.state || "",
-              city: userData.location?.city || "",
-              address: userData.location?.address || "",
-            },
-          });
-          setFormData({
-            username: userData.username || "",
-            fullName: userData.fullName || "",
-            email: userData.email || "",
-            phoneNumber: userData.phoneNumber || "",
-            location: {
-              state: userData.location?.state || "",
-              city: userData.location?.city || "",
-              address: userData.location?.address || "",
-            },
-          });
-          if (userData.rooftop) {
-            setUserRoofTop({ rooftop: userData.rooftop });
-            setRooftopFormData({ rooftop: userData.rooftop });
-          } else {
-            setUserRoofTop({
-              rooftop: { area: "", type: "", dwellers: "", space: "" },
+          if (isGoogle || currentUser.emailVerified) {
+            setUser(currentUser);
+            if (currentUser.photoURL) setPhoto(currentUser.photoURL);
+          } else setUser(null);
+
+          const docRef = doc(firestore, "users", currentUser.uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const userData = docSnap.data() as FormData & RoofTopFormData;
+            setUserProfile({
+              username: userData.username || "",
+              fullName: userData.fullName || "",
+              email: userData.email || "",
+              phoneNumber: userData.phoneNumber || "",
+              location: {
+                state: userData.location?.state || "",
+                city: userData.location?.city || "",
+                address: userData.location?.address || "",
+              },
             });
-            setRooftopFormData({
-              rooftop: { area: "", type: "", dwellers: "", space: "" },
+            setFormData({
+              username: userData.username || "",
+              fullName: userData.fullName || "",
+              email: userData.email || "",
+              phoneNumber: userData.phoneNumber || "",
+              location: {
+                state: userData.location?.state || "",
+                city: userData.location?.city || "",
+                address: userData.location?.address || "",
+              },
             });
+            if (userData.rooftop) {
+              setUserRoofTop({ rooftop: userData.rooftop });
+              setRooftopFormData({ rooftop: userData.rooftop });
+            } else {
+              setUserRoofTop({
+                rooftop: { area: "", type: "", dwellers: "", space: "" },
+              });
+              setRooftopFormData({
+                rooftop: { area: "", type: "", dwellers: "", space: "" },
+              });
+            }
           }
         }
       });
@@ -253,7 +269,7 @@ const UserProfile = () => {
     fetchUser();
   }, []);
 
-  // Detect location 
+  // Detect location
   const detectLocation = () => {
     if (typeof window === "undefined" || !navigator.geolocation) {
       alert("Geolocation not supported");
@@ -275,7 +291,11 @@ const UserProfile = () => {
             location: {
               ...prev.location,
               state: data.address.state || "",
-              city: data.address.city || data.address.town || data.address.village || "",
+              city:
+                data.address.city ||
+                data.address.town ||
+                data.address.village ||
+                "",
               address: data.display_name || "",
             },
           }));
@@ -301,13 +321,19 @@ const UserProfile = () => {
       <div className="flex flex-col gap-4 w-full max-w-4xl mx-10 mt-24">
         <div className="bg-gradient-to-r from-indigo-500 to-pink-500 p-1 rounded-2xl shadow-xl">
           <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col md:flex-row items-center gap-6 p-6">
-            <Image
-              src={profile}
-              width={130}
-              height={130}
-              alt="Profile Image"
-              className="rounded-full border-4 border-white shadow-lg"
-            />
+            {photo != "" ? (
+              <img
+                src={photo}
+                width={130}
+                height={130}
+                alt="Profile Image"
+                className="rounded-full border-4 border-white shadow-lg"
+              />
+            ) : (
+              <div className="w-10 h-10 flex items-center justify-center rounded-full bg-sky-500 text-white font-semibold">
+                {user?.displayName?.[0]?.toUpperCase() || "G"}
+              </div>
+            )}
             <div className="flex flex-col flex-1 gap-2 text-center md:text-left">
               <h1 className="text-3xl font-bold text-gray-200">
                 {userProfile.fullName}
@@ -389,17 +415,22 @@ const UserProfile = () => {
                     className="bg-white/10 text-white placeholder-white/50 border border-white/30 rounded-xl p-3 focus:ring-2 focus:ring-pink-400 outline-none"
                     required
                   >
-                    <option value="" className="bg-white/100 text-gray-900">Select State</option>
-                    {[{ id: 1, name: "West Bengal" }, { id: 2, name: "Maharastra" }, { id: 3, name: "Delhi" }]
-                      .map((item) => (
-                        <option
-                          key={item.id}
-                          value={item.name}
-                          className="bg-white/100 text-gray-900"
-                        >
-                          {item.name}
-                        </option>
-                      ))}
+                    <option value="" className="bg-white/100 text-gray-900">
+                      Select State
+                    </option>
+                    {[
+                      { id: 1, name: "West Bengal" },
+                      { id: 2, name: "Maharastra" },
+                      { id: 3, name: "Delhi" },
+                    ].map((item) => (
+                      <option
+                        key={item.id}
+                        value={item.name}
+                        className="bg-white/100 text-gray-900"
+                      >
+                        {item.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex flex-col gap-2 w-[100%]">
