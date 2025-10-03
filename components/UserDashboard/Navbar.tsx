@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import SearchBar from "../SearchBar";
 import { BellIcon } from "@heroicons/react/24/outline"; // Using Heroicons for clean icons
 import LanguageSwitcher from "../LanguageSwitcher";
+import NotificationBell from "./NotificationBell";
 
 // Dashboard Header
 interface DashboardHeaderProps {
@@ -79,7 +80,7 @@ const Navbar: React.FC<DashboardHeaderProps> = ({
         </span>
 
         {/* Notification Icon */}
-        <div className="relative">
+        {/* <div className="relative">
           <button className="relative p-2 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all duration-300 focus:outline-none cursor-pointer">
             <BellIcon className="h-6 w-6" />
             {notifications > 0 && (
@@ -88,7 +89,9 @@ const Navbar: React.FC<DashboardHeaderProps> = ({
               </span>
             )}
           </button>
-        </div>
+        </div> */}
+
+        <NotificationBell />  
 
         {/* Language Selector */}
         <LanguageSwitcher language={language} setLanguage={setLanguage} page="dashboard" />

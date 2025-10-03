@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 
 interface Order {
@@ -47,7 +48,7 @@ const Orders: React.FC = () => {
   ]);
 
   return (
-    <div className="p-6 rounded-2xl bg-white/10 backdrop-blur-lg shadow-xl">
+    <div className="relative p-6 rounded-2xl bg-white/10 backdrop-blur-lg shadow-xl">
       <h3 className="text-2xl font-bold mb-6 text-sky-300">📦 Orders Management</h3>
 
       <div className="overflow-x-auto">

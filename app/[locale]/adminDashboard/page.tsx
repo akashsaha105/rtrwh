@@ -45,7 +45,7 @@ const Page = () => {
         activeItem={activeItem}
         setActiveItem={setActiveItem}
       />
-      <div className="relative z-50 flex-1 flex flex-col">
+      <div className="relative z-10 flex-1 flex flex-col">
         <Navbar
           activeItem={activeItem}
           setActiveItem={setActiveItem}
@@ -59,8 +59,7 @@ const Page = () => {
 
           {/* Insights */}
           <div className={activeItem === "orders" ? "block" : "hidden"}>
-            <h3 className="text-lg font-semibold mb-4">Orders</h3>
-            <OrdersPage />
+            <OrdersPage />  
           </div>
 
           {/* Users */}
@@ -76,11 +75,6 @@ const Page = () => {
           {/* Analytics */}
           <div className={activeItem === "analytics" ? "block" : "hidden"}>
             <h1>Analytics</h1>
-          </div>
-
-          {/* Profile */}
-          <div className={activeItem === "profile" ? "block" : "hidden"}>
-            User Profile
           </div>
         </main>
       </div>

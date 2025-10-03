@@ -63,34 +63,6 @@ const Users = () => {
     <div className="p-6 rounded-2xl bg-white/10 backdrop-blur-md shadow-lg">
       <h3 className="text-2xl font-bold mb-6 text-sky-300">Users Dashboard</h3>
 
-      {/* 🌟 Pro Users Section */}
-      <div className="mb-8">
-        <h4 className="text-lg font-semibold text-yellow-400 mb-3">
-          🌟 Pro Users
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {proUsers.length > 0 ? (
-            proUsers.map((user) => (
-              <div
-                key={user.id}
-                className="p-4 rounded-xl bg-gradient-to-r from-sky-600/30 to-indigo-600/30 
-                           border border-white/10 shadow-lg hover:scale-105 transition"
-              >
-                <h5 className="font-bold text-white">{user.fullName}</h5>
-                <p className="text-gray-300 text-sm">{user.email}</p>
-                <p className="text-gray-400 text-sm">📱 {user.phoneNumber}</p>
-                <p className="text-gray-400 text-sm">
-                  🏠 {user.location.address}
-                </p>
-                <p className="mt-2 text-green-300 font-semibold">⭐ Pro User</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-400">No Pro Users 🚫</p>
-          )}
-        </div>
-      </div>
-
       {/* 🔍 Search + Filters */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         {/* Search */}

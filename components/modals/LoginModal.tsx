@@ -166,8 +166,8 @@ const LoginModal = () => {
         const customUID = await generateCustomUID();
 
         await setDoc(userRef, {
-          fullName: "",
-          phoneNumber: "",
+          fullName: user.displayName,
+          phoneNumber: user.phoneNumber,
           geopoint: [],
           email: user.email,
           username: user.displayName || user.email?.split("@")[0] || "User",
@@ -195,6 +195,25 @@ const LoginModal = () => {
             userRef,
             {
               photoURL: user.photoURL,
+            },
+            { merge: true } // ✅ merge instead of overwrite
+          );
+        }
+
+        if (!data.fullName && user.displayName) {
+          await setDoc(
+            userRef,
+            {
+              fullName: user.displayName
+            },
+            {merge: true}
+          )
+        }
+        if (!data.phoneNumber && user.phoneNumber) {
+          await setDoc(
+            userRef,
+            {
+              phoneNumber: user.phoneNumber,
             },
             { merge: true } // ✅ merge instead of overwrite
           );

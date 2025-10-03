@@ -91,7 +91,7 @@ const SideBar: React.FC<DashboardSideBarProps> = ({
             {item.icon}
             {!collapsed && <span>{item.name}</span>}
             {collapsed && (
-              <span className="absolute left-16 px-2 py-1 text-xs rounded bg-slate-800/90 text-white z-50 opacity-0 group-hover:opacity-100 transition">
+              <span className="absolute z-50 left-16 px-2 py-1 text-xs rounded bg-slate-800/90 text-white opacity-0 group-hover:opacity-100 transition">
                 {item.name}
               </span>
             )}
@@ -100,7 +100,7 @@ const SideBar: React.FC<DashboardSideBarProps> = ({
       </nav>
 
       {/* User Info */}
-      <div className="mt-auto" onClick={() => setActiveItem("profile")}>
+      <div className="mt-auto">
         <UserInfo displayName={username} email={email} collapsed={collapsed}/>
       </div>
     </aside>

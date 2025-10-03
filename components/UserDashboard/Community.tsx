@@ -11,7 +11,6 @@ import {
   orderBy,
   onSnapshot,
   DocumentData,
-  where,
 } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
 
