@@ -85,6 +85,10 @@ const SignupModal = () => {
     } finally {
       setLoading(false);
     }
+
+    setEmail("")
+    setPassword("")
+    setConfirmPassword("")
   };
 
   // if (loading) return <LoadingPage />;

@@ -142,10 +142,13 @@ const LoginModal = () => {
       // ✅ Stop loading in all cases (success, error, early return)
       setLoading(false);
     }
+    setLoginEmail("");
+    setLoginPassword("");
   };
 
   // ---- inside LoginModal ----
 
+  // Handle Google login
   // Handle Google login
   const handleGoogleLogin = async () => {
     if (loading) return; // prevent multiple clicks
@@ -155,11 +158,11 @@ const LoginModal = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Check if user doc exists
       const userRef = doc(firestore, "users", user.uid);
-      const userDoc = await getDoc(userRef);
+      const userSnap = await getDoc(userRef);
 
-      if (!userDoc.exists()) {
+      if (!userSnap.exists()) {
+        // first-time Google login → create user doc
         const customUID = await generateCustomUID();
 
         await setDoc(userRef, {
@@ -167,8 +170,9 @@ const LoginModal = () => {
           phoneNumber: "",
           geopoint: [],
           email: user.email,
-          username: user.displayName,
+          username: user.displayName || user.email?.split("@")[0] || "User",
           uid: customUID,
+          photoURL: user.photoURL || "", // ✅ ensure photoURL is stored
           createdAt: new Date(),
           location: {
             state: "",
@@ -183,6 +187,18 @@ const LoginModal = () => {
           },
           status: "Inactive",
         });
+      } else {
+        // user doc exists → update photoURL if missing
+        const data = userSnap.data();
+        if (!data.photoURL && user.photoURL) {
+          await setDoc(
+            userRef,
+            {
+              photoURL: user.photoURL,
+            },
+            { merge: true } // ✅ merge instead of overwrite
+          );
+        }
       }
 
       dispatch(closeLoginModal());
@@ -190,7 +206,6 @@ const LoginModal = () => {
       router.push("/en/dashboard");
     } catch (err) {
       const error = err as FirebaseError;
-      // console.error("Google login failed:", error.message);
 
       switch (error.code) {
         case "auth/popup-closed-by-user":
@@ -255,6 +270,7 @@ const LoginModal = () => {
                 <input
                   type="email"
                   placeholder="you@example.com"
+                  value={loginEmail}
                   required
                   className="w-full px-4 py-2 bg-gray-800/70 text-white border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   onChange={(e) => setLoginEmail(e.target.value)}
@@ -268,6 +284,7 @@ const LoginModal = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
+                  value={loginPassword}
                   required
                   className="w-full px-4 py-2 bg-gray-800/70 text-white border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   onChange={(e) => setLoginPassword(e.target.value)}
