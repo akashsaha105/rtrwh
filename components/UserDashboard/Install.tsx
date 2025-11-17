@@ -6,18 +6,90 @@ import RecommendedProducts from "./RecommendedProducts";
 import InstallType from "./InstallType";
 import { doc, getDoc } from "firebase/firestore";
 
+// ====================== Annual Savings Calculator ======================
+const calculateAnnualSavings = (roofArea: number) => {
+  const RAINFALL_MM = 800;       // fixed rainfall per year
+  const EFFICIENCY = 0.8;        // 80% runoff efficiency
+  const WATER_TARIFF = 0.02;     // ₹ per litre (₹20 per 1000 litres)
+
+  const annualWaterLitres = roofArea * RAINFALL_MM * EFFICIENCY;
+  const annualSavings = annualWaterLitres * WATER_TARIFF;
+
+  return Math.floor(annualSavings);
+};
+
 const InstallPage: React.FC = () => {
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [status, setStatus] = useState("");
 
+  const [standardPrice, setStandardPrice] = useState<number | null>(null);
+  const [proPrice, setProPrice] = useState<number | null>(null);
+
+  const [annualSavings, setAnnualSavings] = useState<number | null>(null);
+
   const handleToggleExtra = (extra: string) => {
-    setSelectedExtras(
-      (prev) =>
-        prev.includes(extra)
-          ? prev.filter((item) => item !== extra) // remove if already selected
-          : [...prev, extra] // add if not selected
+    setSelectedExtras((prev) =>
+      prev.includes(extra)
+        ? prev.filter((item) => item !== extra)
+        : [...prev, extra]
     );
   };
+
+    // Fetch rooftop details from Firebase
+    useEffect(() => {
+  
+      console.log("Fetching rooftop details...");
+  
+      const fetchRooftop = async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+  
+        const ref = doc(firestore, "users", user.uid);
+        const snap = await getDoc(ref);
+  
+        console.log("Rooftop Snap:", snap);
+  
+        if (snap.exists()) {
+          const data = snap.data();
+          const rooftop = data.rooftop;
+  
+          if (rooftop) {
+            const area = parseInt(rooftop.area || "0");
+            const dwellers = parseInt(rooftop.dwellers || "0");
+            const space = parseInt(rooftop.space || "0");
+  
+            // Pricing logic
+            let baseStandard = 20000;
+            let basePro = 40000;
+  
+            // Area adjustments
+            if (area > 500 && area <= 1000) baseStandard += 3000;
+            if (area > 1000) baseStandard += 7000;
+  
+            if (area > 500 && area <= 1000) basePro += 5000;
+            if (area > 1000) basePro += 10000;
+  
+            // Space adjustments
+            if (space < 300) {
+              baseStandard += 2000;
+              basePro += 3000;
+            }
+  
+            // Dweller adjustments
+            if (dwellers >= 6) {
+              baseStandard += 3000;
+              basePro += 5000;
+            }
+  
+            console.log("Calculated Prices:", baseStandard, basePro);
+            setStandardPrice(baseStandard);
+            setProPrice(basePro);
+          }
+        }
+      };
+  
+      fetchRooftop();
+    }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -28,7 +100,15 @@ const InstallPage: React.FC = () => {
 
           if (userDocSnap.exists()) {
             const userData = userDocSnap.data();
-            setStatus(userData.status || ""); 
+            setStatus(userData.status || "");
+
+            // ================= Fetch rooftop area and calculate savings =================
+            const roof = userData.rooftop;
+            if (roof?.area) {
+              const areaNum = parseFloat(roof.area);
+              const savings = calculateAnnualSavings(areaNum);
+              setAnnualSavings(savings);
+            }
           } else {
             console.log("No such user document!");
           }
@@ -36,12 +116,15 @@ const InstallPage: React.FC = () => {
           console.error("Error fetching user data:", error);
         }
       } else {
-        setStatus(""); // user signed out
+        setStatus("");
+        setAnnualSavings(null);
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  console.log(standardPrice, proPrice);
 
   return (
     <div className="relative space-y-6 p-8">
@@ -60,7 +143,9 @@ const InstallPage: React.FC = () => {
           <h4 className="text-lg font-semibold text-sky-200 mb-3">
             Installation Cost
           </h4>
-          <p className="text-3xl font-bold text-white">₹ 25,000 – ₹ 45,000</p>
+          <p className="text-3xl font-bold text-white">
+            ₹ {standardPrice} – ₹ {proPrice}
+          </p>
           <p className="text-sm text-gray-300 mt-2">
             Based on Standard vs Pro package.
           </p>
@@ -70,7 +155,9 @@ const InstallPage: React.FC = () => {
           <h4 className="text-lg font-semibold text-green-300 mb-3">
             Annual Savings
           </h4>
-          <p className="text-3xl font-bold text-green-400">₹ 12,000</p>
+          <p className="text-3xl font-bold text-green-400">
+            ₹ {annualSavings !== null ? annualSavings : "Calculating..."}
+          </p>
           <p className="text-sm text-gray-300 mt-2">
             Reduced water bills and recharge benefits.
           </p>
@@ -78,7 +165,14 @@ const InstallPage: React.FC = () => {
       </div>
 
       {/* ================= Installation Types ================= */}
-      {status == "Inactive" ? <InstallType /> : ""}
+      {
+        status === "Inactive" &&  <InstallType
+          standardPrice={standardPrice}
+          proPrice={proPrice}
+        />
+      
+      }
+     
 
       {/* ================= Recommended Products ================= */}
       <RecommendedProducts />
@@ -161,13 +255,12 @@ const InstallPage: React.FC = () => {
                   img: "https://m.media-amazon.com/images/I/713vJhqz1nL._UF1000,1000_QL80_.jpg",
                 },
               ]
-                .filter((item) => selectedExtras.includes(item.name)) // ✅ show only selected
+                .filter((item) => selectedExtras.includes(item.name))
                 .map((item, i) => (
                   <div
                     key={i}
                     className="bg-gradient-to-br from-indigo-900/40 to-sky-800/30 p-6 rounded-2xl backdrop-blur-md border border-white/10 shadow-lg hover:shadow-2xl transition cursor-pointer"
                   >
-                    {/* Image Section */}
                     <div className="relative w-full h-40 mb-5">
                       <img
                         src={item.img}

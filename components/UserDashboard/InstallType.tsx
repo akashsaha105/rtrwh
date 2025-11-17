@@ -1,25 +1,40 @@
 /* eslint-disable @next/next/no-img-element */
-import { closeBasicModal, closeProModal, openBasicModal, openProModal } from "@/redux/slices/modalSlice";
+import {
+  closeBasicModal,
+  closeProModal,
+  openBasicModal,
+  openProModal,
+} from "@/redux/slices/modalSlice";
 import { AppDispatch, RootState } from "@/redux/store";
 import { Modal } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { auth, firestore } from "@/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
-const InstallType = () => {
+const InstallType = (
+  {
+    standardPrice,
+    proPrice,}: {
+    standardPrice: number | null,
+    proPrice: number | null,
+}) => {
   const basicOpen = useSelector(
     (state: RootState) => state.modals.basicModalIsOpen
-  );  
+  );
   const proOpen = useSelector(
     (state: RootState) => state.modals.proModalIsOpen
   );
   const dispatch: AppDispatch = useDispatch();
+
 
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1 },
     exit: { opacity: 0, scale: 0.8 },
   };
+
   return (
     <div className="mb-12">
       <h3 className="text-2xl font-bold text-green-300 mb-6">Plan</h3>
@@ -43,7 +58,9 @@ const InstallType = () => {
           </ul>
 
           <div className="mt-6">
-            <p className="text-3xl font-bold text-sky-300">₹ 25,000</p>
+            <p className="text-3xl font-bold text-sky-300">
+              {standardPrice !== null ? `₹ ${standardPrice}` : "Loading..."}
+            </p>
             <p className="text-sm text-gray-400">One-time installation cost</p>
           </div>
           <button
@@ -75,16 +92,22 @@ const InstallType = () => {
           </ul>
 
           <div className="mt-6">
-            <p className="text-3xl font-bold text-purple-300">₹ 45,000</p>
+            <p className="text-3xl font-bold text-purple-300">
+              {proPrice !== null ? `₹ ${proPrice}` : "Loading..."}
+            </p>
             <p className="text-sm text-gray-400">
               Advanced automation + lifetime dashboard
             </p>
           </div>
-          <button onClick={() => dispatch(openProModal())} className="mt-6 w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold transition cursor-pointer">
+          <button
+            onClick={() => dispatch(openProModal())}
+            className="mt-6 w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold transition cursor-pointer"
+          >
             Get Pro Plan
           </button>
         </div>
 
+        {/* BASIC MODAL */}
         <Modal open={basicOpen} onClose={() => dispatch(closeBasicModal())}>
           <AnimatePresence>
             {basicOpen && (
@@ -114,7 +137,7 @@ const InstallType = () => {
                     Standard Installation
                   </h2>
 
-                  {/* Instructions */}
+                   {/* Instructions */} 
                   <div className="mb-6 text-gray-700">
                     <p className="mb-2">
                       Click the button below to start the standard installation
@@ -167,6 +190,8 @@ const InstallType = () => {
             )}
           </AnimatePresence>
         </Modal>
+
+        {/* PRO MODAL */}
         <Modal open={proOpen} onClose={() => dispatch(closeProModal())}>
           <AnimatePresence>
             {proOpen && (
