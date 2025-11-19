@@ -1,7 +1,12 @@
 'use client'
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useDispatch } from "react-redux";
 import { Camera, CloudRain, Calculator, Users, ArrowRight, CheckCircle } from 'lucide-react'
+
+
+import {openLoginModal} from "@/redux/slices/modalSlice";
+
 
 const steps = [
   {
@@ -59,6 +64,7 @@ const steps = [
 ]
 
 export default function How({}) {
+  const dispatch = useDispatch();
   return (
     <section id="how" className="py-20 relative">
       {/* Background Elements */}
@@ -179,7 +185,7 @@ export default function How({}) {
               <h3 className="text-2xl font-bold text-white mb-2">Ready to Get Started?</h3>
               <p className="text-gray-300">Join thousands of users who have already assessed their rainwater harvesting potential.</p>
             </div>
-            <button onClick={()=>window.location.href='Signup'} className="px-8 py-4 bg-gradient-to-r from-[#0077b6] to-[#00b4d8] text-white rounded-xl shadow-glow hover:scale-105 transform transition font-semibold text-lg">
+            <button onClick={()=>dispatch(openLoginModal())} className="px-8 py-4 bg-gradient-to-r from-[#0077b6] to-[#00b4d8] text-white rounded-xl shadow-glow hover:scale-105 transform transition font-semibold text-lg">
               Start Your Assessment
             </button>
           </div>

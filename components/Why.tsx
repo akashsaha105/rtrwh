@@ -2,6 +2,9 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { DollarSign, Droplets, Leaf, Award, TrendingUp, Shield, Users, Globe } from 'lucide-react'
+import { useDispatch } from "react-redux";
+import {openLoginModal} from "@/redux/slices/modalSlice";
+
 
 const benefits = [
   {
@@ -63,6 +66,7 @@ const additionalBenefits = [
 
 
 export default function Why({}) {
+  const dispatch = useDispatch();
   return (
     <section id="why" className="py-20 relative">
       {/* Background Elements */}
@@ -212,7 +216,7 @@ export default function Why({}) {
             </div>
             
             <div className="mt-8">
-              <button onClick={()=>window.location.href='Signup'} className="px-8 py-4 bg-gradient-to-r from-[#48bb78] to-[#0077b6] text-white rounded-xl shadow-glow hover:scale-105 transform transition font-semibold text-lg">
+              <button onClick={()=>dispatch(openLoginModal())} className="px-8 py-4 bg-gradient-to-r from-[#48bb78] to-[#0077b6] text-white rounded-xl shadow-glow hover:scale-105 transform transition font-semibold text-lg">
                 Start Your Water Journey Today
               </button>
             </div>
